@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die;
 
 // Entry in Site administration -> Reports -> Download configuration
 if (has_capability('moodle/course:create', context_system::instance())) {
+    //$ADMIN->add('root', new admin_category('upb_curs', 'Cursuri UPB'));
     $ADMIN->add(
         'reports', 
         new admin_externalpage(

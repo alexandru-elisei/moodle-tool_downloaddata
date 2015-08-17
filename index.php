@@ -38,21 +38,22 @@ $iid         = optional_param('iid', '', PARAM_INT);
 //raise_memory_limit(MEMORY_HUGE);
 
 require_login();
-//admin_externalpage_setup('tooldownloadconfig');
-require_capability('moodle/category:manage', context_system::instance());
+admin_externalpage_setup('tooldownloadconfig');
+require_capability('moodle/course:create', context_system::instance());
 
 $returnurl = new moodle_url('/admin/tool/downloadconfig/index.php');
 $bulknurl  = new moodle_url('/admin/tool/downloadconfig/index.php');
 
-$today = time();
-$today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
+//$today = time();
+//$today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
 
 
-$mform1 = new tool_donwloadconfig_form();
+$mform1 = new tool_downloadconfig_form();
 
 /// Print the form
 
 echo $OUTPUT->header();
+//echo $OUTPUT->heading_with_help(get_string('donwloadconfig', 'tool_downloadconfig'), 'downloadconfig', 'tool_downloadconfig');
 $mform1->display();
 echo $OUTPUT->footer();
 die;

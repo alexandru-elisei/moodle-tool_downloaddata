@@ -42,9 +42,8 @@ class tool_downloadconfig_form extends moodleform {
     public function definition () {
         $mform = $this->_form;
 
-        $mform->addElement('header', 'generalhdr', get_string('download'));
+        $mform->addElement('header', 'generalhdr', get_string('download', 'tool_downloadconfig'));
 
-        $this->add_action_buttons(false, get_string('download', 'tool_downloadconfig'));
-        $this->add_action_buttons(false, get_string('upload', 'tool_downloadconfig'));
+        $this->add_action_buttons(false, get_string('downloadcourses', 'tool_downloadconfig'));
     }
 }
