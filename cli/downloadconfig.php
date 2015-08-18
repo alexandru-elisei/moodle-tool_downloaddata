@@ -34,19 +34,19 @@ require_once('../locallib.php');
 list($options, $unrecognized) = cli_get_params(array(
     'help' => false,
     'format' => 'csv',
-    'input' => '',
-    'output' => '',
+    'data' => '',
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
     'force' => false,
+    'templatecourse' => ''
 ),
 array(
     'h' => 'help',
     'f' => 'format',
-    'i' => 'input',
-    'o' => 'output',
-    'd' => 'delimiter',
+    'd' => 'data',
+    'l' => 'delimiter',
     'e' => 'encoding',
+    't' => 'templatecourse'
 ));
 
 $help =
@@ -55,82 +55,76 @@ $help =
 Options:
 -h, --help                 Print out this help
 -f, --format               Format: csv (default) or xls
--i, --input                Configuration file: courses or teachers
--o, --output               Output file
--d, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
+-d, --data                 Data to download: courses or teachers
+-l, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
+-t, --templatecourse       Template course name
     --force                Force overwriting the output file: true or false (default)
 
 Example:
-\$php downloadconfig.php --input=courses --output=./courses.csv --format=csv
+\$php downloadconfig.php --data=courses --format=xls > output.xls
+
 ";
 
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
-    cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
+    fputs(STDERR, get_string('cliunknowoption', 'admin', $unrecognized) . "\n");
+    die();
 }
 
 if ($options['help']) {
-    echo $help;
+    fputs(STDERR, $help);
     die();
 }
 
-$inputs = array(
-    'courses' => DC_INPUT_COURSES,
-    'teachers' => DC_INPUT_TEACHERS
+$dataoptions = array(
+    'courses' => DC_DATA_COURSES,
+    'teachers' => DC_DATA_TEACHERS
 );
-if (!isset($options['input']) || !isset($inputs[$options['input']])) {
-    echo get_string('invalidinput', 'tool_downloadconfig');
-    echo $help;
+if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
+    fputs(STDERR, get_string('invaliddata', 'tool_downloadconfig'). "\n");
+    fputs(STDERR, $help);
     die();
 }
-$input = $inputs[$options['input']];
+$data = $dataoptions[$options['data']];
 
 $formats = array(
     'csv' => DC_FORMAT_CSV,
     'xls' => DC_FORMAT_XLS
 );
 if (!isset($options['format']) || !isset($formats[$options['format']])) {
-    echo get_string('invalidformat', 'tool_downloadconfig');
-    echo $help;
+    fputs(STDERR, get_string('invalidformat', 'tool_downloadconfig'));
+    fputs(STDERR, $help);
     die();
 }
 $format = $formats[$options['format']];
 
 $encodings = core_text::get_encodings();
 if (!isset($encodings[$options['encoding']])) {
-    echo get_string('invalidencoding', 'tool_downloadconfig');
-    echo $help;
+    fputs(STDERR, get_string('invalidencoding', 'tool_downloadconfig'));
+    fputs(STDERR, $help);
     die();
 }
-
-if (!empty($options['output'])) {
-    $options['output'] = realpath($options['output']);
-}
-if (file_exists($options['output'])) { 
-    echo get_string('overwritingfile', 'tool_downloadconfig');
-    if (!$options['force']) {
-        echo ". Exiting\n";
-        echo "To overwrite the file, use the --force switch"; 
-        die();
-    }
-    echo "\n";
-}
-$output = $options['output'];
 
 $delimiters = csv_import_reader::get_delimiter_list();
 if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) {
-    echo get_string('invaliddelimiter', 'tool_downloadconfig');
-    echo $help;
+    fputs(STDERR, get_string('invaliddelimiter', 'tool_downloadconfig'));
+    fputs(STDERR, $help);
     die();
 }
-
-echo "\nMoodle download configuration file running ...\n\n";
 
 // Emulate admin session.
 cron_setup_user();
 
-//dc_export_to_excel($input, $output, $options);
-dc_get_data(DC_INPUT_COURSES);
+$contents = dc_get_data(DC_DATA_COURSES);
+if (empty($contents)) {
+    fputs(STDERR, get_string('emptycontents', 'tool_downloadconfig') . "\n");
+    die();
+}
 
-echo "Done.\n";
+$output = "phonyoutput";
+if ($format == DC_FORMAT_XLS) {
+    dc_save_to_excel($data, $output, $contents, $options);
+} else if ($format == DC_FORMAT_CSV) {
+    dc_save_to_csv($data, $output, $contents, $options);
+}
