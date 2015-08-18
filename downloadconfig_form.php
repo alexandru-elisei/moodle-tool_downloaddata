@@ -56,6 +56,10 @@ class tool_downloadconfig_form extends moodleform {
         );
         $mform->addElement('select', 'format', 
             get_string('format', 'tool_downloadconfig'), $format_choices);
+        $encodings = core_text::get_encodings();
+        $mform->addElement('select', 'encoding', 
+            get_string('encoding', 'tool_downloadconfig'), $encodings);
+        $mform->setDefault('encoding', 'UTF-8');
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloadconfig'));
     }
