@@ -43,7 +43,20 @@ class tool_downloadconfig_form extends moodleform {
         $mform = $this->_form;
 
         $mform->addElement('header', 'generalhdr', get_string('download', 'tool_downloadconfig'));
+        $file_choices = array(
+            'courses' => 'Courses',
+            'teachers' => 'Teachers',
+            'assistants' => 'Teacher assistants'
+        );
+        $mform->addElement('select', 'configfile', 
+            get_string('configfile', 'tool_downloadconfig'), $file_choices);
+        $format_choices = array(
+            'csv' => 'Comma separated values (.csv)',
+            'xls' => 'Microsoft Excel (.xls)'
+        );
+        $mform->addElement('select', 'format', 
+            get_string('format', 'tool_downloadconfig'), $format_choices);
 
-        $this->add_action_buttons(false, get_string('downloadcourses', 'tool_downloadconfig'));
+        $this->add_action_buttons(false, get_string('download', 'tool_downloadconfig'));
     }
 }

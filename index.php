@@ -50,10 +50,16 @@ $bulknurl  = new moodle_url('/admin/tool/downloadconfig/index.php');
 
 $mform1 = new tool_downloadconfig_form();
 
-/// Print the form
-
+// Print the form
 echo $OUTPUT->header();
-//echo $OUTPUT->heading_with_help(get_string('donwloadconfig', 'tool_downloadconfig'), 'downloadconfig', 'tool_downloadconfig');
+
+if ($formdata = $mform1->get_data()) {
+    echo 'got data: ';
+    var_dump($formdata);
+} else {
+    echo 'no data, damn';
+}
+
 $mform1->display();
 echo $OUTPUT->footer();
 die;
