@@ -32,21 +32,33 @@ define('DC_DATA_USERS', 1);
 define('DC_FORMAT_CSV', 0);
 define('DC_FORMAT_XLS', 1);
 
-define('DC_XLS_COLUMN_WIDTH', 15);
+define('DC_XLS_COLUMN_WIDTH', 13);
 define('DC_XLS_COURSES_WORKSHEET_NAME', 'courses');
 define('DC_XLS_USERS_WORKSHEET_NAME', 'users');
 
-// Custom field widths for the Excel file.
-$dc_field_widths = array('category_path' => 30);
+// Custom column widths for the Excel file.
+$dc_column_widths = array(
+    'category_path' => 30
+);
 
 // Cache for roles.
 $dc_rolescache = array();
 
 // Output fields for courses in CSV format.
-$dc_csv_courses_fields = array('shortname', 'fullname', 'category_path');
+$dc_csv_courses_fields = array(
+    'shortname',
+    'fullname',
+    'category_path'
+);
 
 // Output fields for users in CSV format.
-$dc_csv_users_fields = array('rolename', 'username', 'fullname', 'email');
+$dc_csv_users_fields = array(
+    'username',
+    'firstname',
+    'middlename',
+    'lastname',
+    'email'
+);
 
 // Output fields for courses in Excel format.
 $dc_xls_courses_fields = $dc_csv_courses_fields;
@@ -68,64 +80,91 @@ $dc_xls_users_fields = $dc_csv_users_fields;
 function dc_save_to_excel($data, $output, $options, $contents = NULL, $roles = NULL) {
     global $dc_xls_courses_fields;
     global $dc_xls_users_fields;
-    global $dc_field_widths;
+    global $dc_column_widths;
+    global $dc_rolescache;
 
     $workbook = new MoodleExcelWorkbook($output);
     if ($data == DC_DATA_COURSES) {
         $worksheet = DC_XLS_COURSES_WORKSHEET_NAME;
         $workbook->$worksheet = $workbook->add_worksheet($worksheet);
 
-        $columnnames = $dc_xls_courses_fields;
+        $columns = $dc_xls_courses_fields;
         if (!empty($options['templatecourse'])) {
-            $columnnames[] = 'templatecourse';
+            $columns[] = 'templatecourse';
         }
-        dc_print_column_names($columnnames, $workbook->$worksheet);
+        dc_print_column_names($columns, $workbook->$worksheet);
 
-        $lastcolumn = count($columnnames) - 1;
+        $lastcolumn = count($columns) - 1;
         $workbook->$worksheet->set_row(0, NULL, array('h_align' => 'center'));
         $workbook->$worksheet->set_column(0, $lastcolumn, DC_XLS_COLUMN_WIDTH);
+        dc_set_custom_widths($columns, $workbook->$worksheet);
 
         $row = 1;
         // Saving courses
         foreach($contents as $key => $course) {
-            $column = 0;
-            foreach ($dc_xls_courses_fields as $key => $field) {
+            foreach ($columns as $column => $field) {
                 $workbook->$worksheet->write($row, $column, $course->$field);
-                if (isset($dc_field_widths[$field])) {
-                    $workbook->$worksheet->set_column($column, $column,
-                                            $dc_field_widths[$field]);
-                }
-                $column++;
-            }
-            if (!empty($options['templatecourse'])) {
-                $workbook->$worksheet->write($row, $column, 
-                                             $options['templatecourse']);
             }
             $row++;
         }
     } else if ($data == DC_DATA_USERS) {
-       $courses = dc_get_data(DC_DATA_COURSES);
+        // Resolving column and worksheet names
+        if ($options['withcourses']) {
+            $coursecolumns = $dc_xls_courses_fields;
+            if (!empty($options['templatecourse'])) {
+                $coursecolumns[] = 'templatecourse';
+            }
+            $columns = array_merge($coursecolumns, $dc_xls_users_fields);
+        } else {
+            $colums = $dc_xls_users_fields;
+        }
+        if (!empty($options['templatecourse'])) {
+            $colums[] = $options['templatecourse'];
+        }
 
-       // Resolving column and worksheet names
-       if ($options['withcourses']) {
-           $columnnames = array_merge($dc_xls_courses_fields, $dc_xls_users_fields);
-       } else {
-           $columnnames = $dc_xls_users_fields;
-       }
-       if (!empty($options['templatecourse'])) {
-           $columnnames[] = $options['templatecourse'];
-       }
-       if (!$options['separatesheets']) {
-           $worksheet = DC_XLS_USERS_WORKSHEET_NAME;
-           $workbook->$worksheet = $workbook->add_worksheet($worksheet);
-           dc_print_column_names($columnnames, $workbook->$worksheet);
-       } else {
+        // Formatting the worksheets
+        $lastcolumn = count($columns) - 1;
+        if (!$options['separatesheets']) {
+            $worksheet = DC_XLS_USERS_WORKSHEET_NAME;
+            $workbook->$worksheet = $workbook->add_worksheet($worksheet);
+            dc_print_column_names($columns, $workbook->$worksheet);
+            $workbook->$worksheet->set_row(0, NULL, array('h_align' => 'center'));
+            $workbook->$worksheet->set_column(0, $lastcolumn, DC_XLS_COLUMN_WIDTH);
+            dc_set_custom_widths($columns, $workbook->$worksheet);
+        } else {
+            foreach ($roles as $key => $role) {
+                $worksheet = $role;
+                $workbook->$worksheet = $workbook->add_worksheet($worksheet);
+                dc_print_column_names($columns, $workbook->$worksheet);
+                $workbook->$worksheet->set_row(0, NULL, array('h_align' => 'center'));
+                $workbook->$worksheet->set_column(0, $lastcolumn, DC_XLS_COLUMN_WIDTH);
+                dc_set_custom_widths($columns, $workbook->$worksheet);
+            }
+        }
+        
+        $courses = dc_get_data(DC_DATA_COURSES, $options);
+        $row = 1;
+       /*
+       foreach ($courses as $key => $course) {
+           $coursecontext = context_course::instance($course->id);
+
            foreach ($roles as $key => $role) {
-               $worksheet = $role;
-               $workbook->$worksheet = $workbook->add_worksheet($worksheet);
-               dc_print_column_names($columnnames, $workbook->$worksheet);
+               $usersfields = implode(',', $dc_xls_users_fields);
+               $userinfo = get_role_users($dc_rolescache[$role], $coursecontext,
+                                          false, $usersfields);
            }
+
+           $column = 0;
+           foreach ($coursecolumns as $key => $field) {
+                $workbook->$worksheet->write($row, $column, $course->$field);
+                if (isset($dc_column_widths[$field])) {
+                    $workbook->$worksheet->set_column($column, $column,
+                                            $dc_column_widths[$field]);
+                }
+                $column++;
+            }
        }
+        */
     }
 
     return $workbook;
@@ -158,11 +197,8 @@ function dc_save_to_csv($data, $output, $options, $contents = NULL, $roles = NUL
         // Saving courses
         foreach ($contents as $key => $course) {
             $row = array();
-            foreach ($dc_csv_courses_fields as $key => $field) {
+            foreach ($fields as $key => $field) {
                 $row[] = $course->$field;
-            }
-            if (!empty($options['templatecourse'])) {
-                $row[] = $options['templatecourse'];
             }
             $csv->add_data($row);
         }
@@ -173,15 +209,17 @@ function dc_save_to_csv($data, $output, $options, $contents = NULL, $roles = NUL
         }
         //$users = 
     }
+    return $csv;
 }
 
 /**
  * Get the data to be saved to a file.
  *
  * @param constant $data the type of data.
+ * @param array $options function options.
  * @return array the information.
  */
-function dc_get_data($data) {
+function dc_get_data($data, $options = NULL) {
     global $DB;
 
     $ret = array();
@@ -191,6 +229,10 @@ function dc_get_data($data) {
         unset($ret[1]);
         foreach($ret as $key => $course) {
             $course->category_path = dc_resolve_category_path($course->category);
+        }
+        // Adding templatecourse field, if needed
+        if (!empty($options['templatecourse'])) {
+            $course->templatecourse = $options['templatecourse'];
         }
     }
 
@@ -241,12 +283,14 @@ function dc_resolve_roles($roles)
         return NULL;
     }
     $ret = explode(',', $roles);
-    $dc_rolescache = get_assignable_roles(context_course::instance(SITEID),
+    $roles = get_assignable_roles(context_course::instance(SITEID),
                                      ROLENAME_SHORT);
     foreach($ret as $key => $rolename) {
-        if (!in_array($rolename, $dc_rolescache)) {
+        $id = array_search($rolename, $roles);
+        if (!$id) {
             return NULL;
         }
+        $dc_rolescache[$rolename] = $id;
     }
 
     return $ret;
@@ -255,16 +299,35 @@ function dc_resolve_roles($roles)
 /**
  * Print the field names for Excel files.
  *
- * @param array $columnnames the column names.
+ * @param array $columns the column names.
  * @param MoodleExcelWorksheet $worksheet the worksheet.
  * @return void.
  */
-function dc_print_column_names($columnnames, $worksheet)
+function dc_print_column_names($columns, $worksheet)
 {
     $firstrow = 0;
     $column = 0;
-    foreach ($columnnames as $key => $name) {
+    foreach ($columns as $key => $name) {
         $worksheet->write($firstrow, $column, $name);
         $column++;
     }
 }
+
+/**
+ * Set custom fields witdth for Excel files.
+ *
+ * @param array $columns column names.
+ * @param MoodleExcelWorksheet @worksheet Excel worksheet.
+ * @return void.
+ */
+function dc_set_custom_widths($columns, $worksheet) 
+{
+    global $dc_column_widths;
+
+    foreach ($columns as $no => $name) {
+        if (isset($dc_column_widths[$name])) {
+            $worksheet->set_column($no, $no, $dc_column_widths[$name]);
+        }
+    }
+}
+

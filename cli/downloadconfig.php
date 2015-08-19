@@ -144,7 +144,7 @@ if (!empty($options['roles'])) {
 
 $contents = NULL;
 if ($data == DC_DATA_COURSES) {
-    $contents = dc_get_data(DC_DATA_COURSES);
+    $contents = dc_get_data(DC_DATA_COURSES, $options);
     if (empty($contents)) {
         fputs(STDERR, get_string('emptycontents', 'tool_downloadconfig') . "\n");
         die();
@@ -159,3 +159,5 @@ if ($format == DC_FORMAT_XLS) {
     $csv = dc_save_to_csv($data, $output, $options, $contents);
     $csv->download_file();
 }
+
+//var_dump($contents);
