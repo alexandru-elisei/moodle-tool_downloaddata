@@ -109,60 +109,31 @@ function dc_save_to_excel($data, $output, $contents, $options) {
  * @return void.
  */
 function dc_save_to_csv($data, $output, $contents, $options) {
-    global $dc_output_csv_fields, $dc_output_xls_fields;
+    global $dc_output_csv_fields;
 
-    $workbook = new MoodleExcelWorkbook($output);
-
+    $csv = new csv_export_writer($options['delimiter']);
     if ($data == DC_DATA_COURSES) {
-        $worksheet = DC_XLS_COURSES_WORKSHEET_NAME;
-        $workbook->$worksheet = $workbook->add_worksheet($worksheet);
-        $row = 0;
-        $column = 0;
-        
-        // Saving column names
-        foreach ($dc_output_xls_fields as $field => $longname) {
-            $workbook->$worksheet->write($row, $column, $longname);
-            $column++;
-        }
-        
-        // Formatting columns
-        $last_column = count($dc_output_xls_fields) - 1;
+        // Saving field names
+        $fields = $dc_output_csv_fields;
         if (!empty($options['templatecourse'])) {
-            $workbook->$worksheet->write($row, $column, 'templatecourse');
-            $last_column++;
+            $fields[] = 'templatecourse';
         }
-        $workbook->$worksheet->set_row($row, NULL, array('h_align' => 'center'));
-        $workbook->$worksheet->set_column(0, $last_column, DC_XLS_COLUMN_WIDTH);
+        $csv->add_data($fields);
 
         // Saving courses
-        foreach($contents as $key => $course) {
-            $row++;
-            $column = 0;
-            foreach ($dc_output_xls_fields as $key => $field) {
-                $workbook->$worksheet->write($row, $column, $course->$field);
-                if ($field == 'category_path') {
-                    $workbook->$worksheet->set_column($column, $column,
-                                            DC_XLS_CATEGORY_PATH_WIDTH);
-                }
-                $column++;
+        foreach ($contents as $key => $course) {
+            $row = array();
+            foreach ($dc_output_csv_fields as $key => $field) {
+                $row[] = $course->$field;
             }
             if (!empty($options['templatecourse'])) {
-                $workbook->$worksheet->write($row, $column, 
-                                             $options['templatecourse']);
+                $row[] = $options['templatecourse'];
             }
+            $csv->add_data($row);
         }
     }
-   $workbook->close();
+    $csv->download_file();
 }
-
-/*
-                if ($column == 0) {
-                    $workbook->$worksheet->write($row, $column, $course->$field);
-                } else {
-                    $workbook->$worksheet->write($row, $column, 
-                        $options['delimiter'] . $course->$field);
-                }
-*/
 
 /**
  * Get the data to be saved to a file.
