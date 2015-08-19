@@ -41,7 +41,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'templatecourse' => '',
     'roles' => '',
     'separatesheets' => true,
-    'overwrite' => false
+    'useoverwrites' => false
 ),
 array(
     'h' => 'help',
@@ -63,10 +63,10 @@ Options:
 -l, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
 -t, --templatecourse       Add template course to the downloaded data
--r, --roles                Roles to select users to download (comma separated)
+-r, --roles                Specific roles for users (comma separated)
     --force                Force overwriting the output file: true or false (default)
     --separatesheets       Save the users with each role on separeate worksheets: true (default) or false
-    --overwrite            Overwrite specific fields: true or false (default)
+    --useoverwrites        Overwrite specific fields in locallib: true or false (default)
 
 Example:
 \$php downloadconfig.php --data=courses --format=xls > output.xls
@@ -122,42 +122,71 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
 
 $options['separatesheets'] = ($options['separatesheets'] === true ||
             core_text::strtolower($options['separatesheets']) == 'true');
-$options['overwrite'] = ($options['overwrite'] === true ||
-            core_text::strtolower($options['overwrite']) == 'true');
+$options['useoverwrites'] = ($options['useoverwrites'] === true ||
+            core_text::strtolower($options['useoverwrites']) == 'true');
 
 // Emulate admin session.
 cron_setup_user();
 
-if (empty($options['roles']) && $data == DC_DATA_USERS) {
-    fputs(STDERR, get_string('emptyroles', 'tool_downloadconfig') . "\n");
-    die();
-}
-
-$roles = NULL;
-if (!empty($options['roles'])) {
-    $roles = dc_resolve_roles($options['roles']);
-    if (empty($roles)) {
-        fputs(STDERR, get_string('invalidroles', 'tool_downloadconfig') . "\n");
-        die();
-    }
-}
-
 $contents = NULL;
+$roles = NULL;
 if ($data == DC_DATA_COURSES) {
-    $contents = dc_get_data(DC_DATA_COURSES, $options);
+    $contents = dc_get_courses($options);
     if (empty($contents)) {
         fputs(STDERR, get_string('emptycontents', 'tool_downloadconfig') . "\n");
         die();
     }
+} else if ($data == DC_DATA_USERS) {
+    $roles = dc_resolve_roles($options['roles']);
+    if ($roles == DC_INVALID_ROLES) {
+        fputs(STDERR, get_string('invalidroles', 'tool_downloadconfig') . "\n");
+        die();
+    }
+    $contents = dc_get_users($roles, $options);
 }
+//var_dump($contents);
+//var_dump($roles);
+
+/*
+$roles = get_all_roles();
+var_dump($roles);
+ */
+
+//die();
 
 $output = "phonyoutput";
+//$workbook = dc_save_to_excel($data, $output, $options, $contents, $roles);
+//die();
+
 if ($format == DC_FORMAT_XLS) {
     $workbook = dc_save_to_excel($data, $output, $options, $contents, $roles);
     $workbook->close();
 } else if ($format == DC_FORMAT_CSV) {
-    $csv = dc_save_to_csv($data, $output, $options, $contents);
+    $csv = dc_save_to_csv($data, $output, $options, $contents, $roles);
     $csv->download_file();
 }
+
+/*
+$courses = dc_get_data(DC_DATA_COURSES, $options);
+foreach ($courses as $key => $course) {
+    $userfields = 'u.username, u.firstname, u.lastname, u.email';
+    $coursecontext = context_course::instance($course->id);
+    $userinfo = get_role_users(5, $coursecontext, false, $userfields);
+
+    var_dump($userinfo);
+}
+ */
+
+/*
+//$users = $DB->get_records('user', null, '', 'username,id');
+$users = $DB->get_records('user');
+var_dump($users);
+foreach($users as $key => $user) {
+    if (isset($user->deleted)) {
+        context_system::instance();
+        delete_user($user);
+    }
+}
+ */
 
 //var_dump($contents);
