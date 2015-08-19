@@ -38,7 +38,9 @@ list($options, $unrecognized) = cli_get_params(array(
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
     'force' => false,
-    'templatecourse' => ''
+    'templatecourse' => '',
+    'roles' => '',
+    'withcourses' => true
 ),
 array(
     'h' => 'help',
@@ -46,7 +48,8 @@ array(
     'd' => 'data',
     'l' => 'delimiter',
     'e' => 'encoding',
-    't' => 'templatecourse'
+    't' => 'templatecourse',
+    'r' => 'roles'
 ));
 
 $help =
@@ -55,11 +58,13 @@ $help =
 Options:
 -h, --help                 Print out this help
 -f, --format               Format: csv (default) or xls
--d, --data                 Data to download: courses or teachers
+-d, --data                 Data to download: courses or users
 -l, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
--t, --templatecourse       Template course name
+-t, --templatecourse       Add template course to the downloaded data
+-r, --roles                Roles to select users to download (comma separated)
     --force                Force overwriting the output file: true or false (default)
+    --withcourses          Show enroled courses when downloading users
 
 Example:
 \$php downloadconfig.php --data=courses --format=xls > output.xls
@@ -79,7 +84,7 @@ if ($options['help']) {
 
 $dataoptions = array(
     'courses' => DC_DATA_COURSES,
-    'teachers' => DC_DATA_TEACHERS
+    'users' => DC_DATA_USERS
 );
 if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
     fputs(STDERR, get_string('invaliddata', 'tool_downloadconfig'). "\n");
@@ -116,6 +121,16 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
 // Emulate admin session.
 cron_setup_user();
 
+if (empty($options['roles']) && $data == DC_DATA_USERS) {
+    fputs(STDERR, get_string('emptyroles', 'tool_downloadconfig') . "\n");
+    die();
+}
+$roles = dc_resolve_roles($options['roles']);
+if (empty($roles)) {
+    fputs(STDERR, get_string('invalidroles', 'tool_downloadconfig') . "\n");
+    die();
+}
+
 $contents = dc_get_data(DC_DATA_COURSES);
 if (empty($contents)) {
     fputs(STDERR, get_string('emptycontents', 'tool_downloadconfig') . "\n");
@@ -124,7 +139,9 @@ if (empty($contents)) {
 
 $output = "phonyoutput";
 if ($format == DC_FORMAT_XLS) {
-    dc_save_to_excel($data, $output, $contents, $options);
+    $workbook = dc_save_to_excel($data, $output, $contents, $options);
+    $workbook->close();
 } else if ($format == DC_FORMAT_CSV) {
-    dc_save_to_csv($data, $output, $contents, $options);
+    $csv = dc_save_to_csv($data, $output, $contents, $options);
+    $csv->download_file();
 }

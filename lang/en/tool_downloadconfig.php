@@ -13,4 +13,6 @@ $string['invalidformat'] = 'Invalid format';
 $string['invaliddelimiter'] = 'Invalid CSV delimiter';
 $string['invalidencoding'] = 'Invalid encoding';
 $string['emptycontents'] = 'No data found';
+$string['emptyroles'] = 'No roles specified';
+$string['invalidroles'] = 'Invalid roles';
 $string['overwritingfile'] = 'Overwriting existing file';
