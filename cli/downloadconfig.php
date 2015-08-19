@@ -40,7 +40,8 @@ list($options, $unrecognized) = cli_get_params(array(
     'force' => false,
     'templatecourse' => '',
     'roles' => '',
-    'withcourses' => true
+    'withcourses' => true,
+    'separatesheets' => true
 ),
 array(
     'h' => 'help',
@@ -64,7 +65,8 @@ Options:
 -t, --templatecourse       Add template course to the downloaded data
 -r, --roles                Roles to select users to download (comma separated)
     --force                Force overwriting the output file: true or false (default)
-    --withcourses          Show enroled courses when downloading users
+    --withcourses          Show enroled courses when downloading users: true (default) or false
+    --separatesheets       Save the users with each role on separeate worksheets: true (default) or false
 
 Example:
 \$php downloadconfig.php --data=courses --format=xls > output.xls
@@ -118,6 +120,11 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
     die();
 }
 
+$options['withcourses'] = ($options['withcourses'] === true ||
+            core_text::strtolower($options['withcourses']) == 'true');
+$options['separatesheets'] = ($options['separatesheets'] === true ||
+            core_text::strtolower($options['separatesheets']) == 'true');
+
 // Emulate admin session.
 cron_setup_user();
 
@@ -125,23 +132,30 @@ if (empty($options['roles']) && $data == DC_DATA_USERS) {
     fputs(STDERR, get_string('emptyroles', 'tool_downloadconfig') . "\n");
     die();
 }
-$roles = dc_resolve_roles($options['roles']);
-if (empty($roles)) {
-    fputs(STDERR, get_string('invalidroles', 'tool_downloadconfig') . "\n");
-    die();
+
+$roles = NULL;
+if (!empty($options['roles'])) {
+    $roles = dc_resolve_roles($options['roles']);
+    if (empty($roles)) {
+        fputs(STDERR, get_string('invalidroles', 'tool_downloadconfig') . "\n");
+        die();
+    }
 }
 
-$contents = dc_get_data(DC_DATA_COURSES);
-if (empty($contents)) {
-    fputs(STDERR, get_string('emptycontents', 'tool_downloadconfig') . "\n");
-    die();
+$contents = NULL;
+if ($data == DC_DATA_COURSES) {
+    $contents = dc_get_data(DC_DATA_COURSES);
+    if (empty($contents)) {
+        fputs(STDERR, get_string('emptycontents', 'tool_downloadconfig') . "\n");
+        die();
+    }
 }
 
 $output = "phonyoutput";
 if ($format == DC_FORMAT_XLS) {
-    $workbook = dc_save_to_excel($data, $output, $contents, $options);
+    $workbook = dc_save_to_excel($data, $output, $options, $contents, $roles);
     $workbook->close();
 } else if ($format == DC_FORMAT_CSV) {
-    $csv = dc_save_to_csv($data, $output, $contents, $options);
+    $csv = dc_save_to_csv($data, $output, $options, $contents);
     $csv->download_file();
 }
