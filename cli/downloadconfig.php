@@ -40,8 +40,8 @@ list($options, $unrecognized) = cli_get_params(array(
     'force' => false,
     'templatecourse' => '',
     'roles' => '',
-    'withcourses' => true,
-    'separatesheets' => true
+    'separatesheets' => true,
+    'overwrite' => false
 ),
 array(
     'h' => 'help',
@@ -65,8 +65,8 @@ Options:
 -t, --templatecourse       Add template course to the downloaded data
 -r, --roles                Roles to select users to download (comma separated)
     --force                Force overwriting the output file: true or false (default)
-    --withcourses          Show enroled courses when downloading users: true (default) or false
     --separatesheets       Save the users with each role on separeate worksheets: true (default) or false
+    --overwrite            Overwrite specific fields: true or false (default)
 
 Example:
 \$php downloadconfig.php --data=courses --format=xls > output.xls
@@ -120,10 +120,10 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
     die();
 }
 
-$options['withcourses'] = ($options['withcourses'] === true ||
-            core_text::strtolower($options['withcourses']) == 'true');
 $options['separatesheets'] = ($options['separatesheets'] === true ||
             core_text::strtolower($options['separatesheets']) == 'true');
+$options['overwrite'] = ($options['overwrite'] === true ||
+            core_text::strtolower($options['overwrite']) == 'true');
 
 // Emulate admin session.
 cron_setup_user();

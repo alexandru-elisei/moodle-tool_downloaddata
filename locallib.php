@@ -55,9 +55,15 @@ $dc_csv_courses_fields = array(
 $dc_csv_users_fields = array(
     'username',
     'firstname',
-    'middlename',
     'lastname',
-    'email'
+    'email',
+    'auth',
+    'course'
+);
+
+// Overwrite values for user fields in CSV format.
+$dc_csv_users_overwrite = array(
+    'auth' => 'ldap'
 );
 
 // Output fields for courses in Excel format.
