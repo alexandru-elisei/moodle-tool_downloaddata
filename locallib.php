@@ -119,52 +119,112 @@ function dc_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
             $row++;
         }
     } else if ($data == DC_DATA_USERS) {
-        $worksheet = DC_XLS_USERS_WORKSHEET_NAME;
-        $workbook->$worksheet = $workbook->add_worksheet($worksheet);
+        $worksheets = array();
+        // Current row for each worksheet.
+        $worksheetrow = array();
+        $lastcolumnindex = array();
+        if ($options['separatesheets']) {
+            foreach ($roles as $key => $role) {
+                $sheetname = $role;
+                $worksheets[] = $sheetname;
+                $workbook->$sheetname = $workbook->add_worksheet($sheetname);
+                $worksheetrow[$sheetname] = 1;
+                $lastcolumnindex[$sheetname] = 0;
+            }
+        } else {
+            $sheetname = DC_XLS_USERS_WORKSHEET_NAME;
+            $worksheets[] = $sheetname;
+            $workbook->$sheetname = $workbook->add_worksheet($sheetname);
+            $worksheetrow[$sheetname] = 1;
+            $lastcolumnindex[$sheetname] = 0;
+        }
 
-        $lastcolumnindex = 0;
-        $row = 1;
         foreach ($contents as $key => $user) {
-            // Print user info only if their role was requested (or printing 
-            // all users).
+            // Print user info only if their role was requested.
             if (!empty($user->roles)) {
-                $column = 0;
-                $columns = $dc_xls_users_fields;
-                foreach ($dc_xls_users_fields as $key => $field) {
-                    $workbook->$worksheet->write($row, $column, $user->$field);
-                    $column++;
-                }
-                // Saving course and role fields, if necessary.
-                foreach ($user->roles as $key => $rolearr) {
-                    foreach ($rolearr as $role => $course) {
-                        $workbook->$worksheet->write($row, $column, $course);
-                        $column++;
-                        $workbook->$worksheet->write($row, $column, $role);
+                // Print all users on one worksheet.
+                if (!$options['separatesheets']) {
+                    $sheetname = reset($worksheets);
+                    $column = 0;
+                    foreach ($dc_xls_users_fields as $key => $field) {
+                        $workbook->$sheetname->write($worksheetrow[$sheetname], 
+                                                     $column, $user->$field);
                         $column++;
                     }
+
+                    // Saving course and role fields
+                    foreach ($user->roles as $key => $rolearr) {
+                        foreach ($rolearr as $role => $course) {
+                            $workbook->$sheetname->write($worksheetrow[$sheetname], 
+                                                         $column, $course);
+                            $column++;
+                            $workbook->$sheetname->write($worksheetrow[$sheetname], 
+                                                         $column, $role);
+                            $column++;
+                        }
+                    }
+
+                    $worksheetrow[$sheetname]++;
+                    if ($lastcolumnindex[$sheetname] < $column-1) {
+                        $lastcolumnindex[$sheetname] = $column-1;
+                    }
+                } else {
+                    // Use separate worksheets for each role.
+                    foreach ($roles as $key => $role) {
+                        $sheetname = $role;
+                        $column = 0;
+
+                        $hasrole = false;
+                        foreach ($user->roles as $key => $rolearr) {
+                            if (isset($rolearr[$role])) {
+                                $hasrole = true;
+                                break;
+                            }
+                        }
+                        if ($hasrole) {
+                            foreach ($dc_xls_users_fields as $key => $field) {
+                                $workbook->$role->write($worksheetrow[$sheetname], 
+                                                        $column, $user->$field);
+                                $column++;
+                            }
+
+                            foreach ($user->roles as $key => $rolearr) {
+                                foreach ($rolearr as $r => $c) {
+                                    $workbook->$sheetname->write($worksheetrow[$sheetname], 
+                                        $column, $c);
+                                    $column++;
+                                    $workbook->$sheetname->write($worksheetrow[$sheetname],
+                                        $column, $r);
+                                    $column++;
+                                }
+                            }
+                            $worksheetrow[$sheetname]++;
+                            if ($lastcolumnindex[$sheetname] < $column - 1) {
+                                $lastcolumnindex[$sheetname] = $column - 1;
+                            }
+                        }
+                    }
                 }
-                if ($column-1 > $lastcolumnindex) {
-                    $lastcolumnindex = $column-1;
-                }
-                $row++;
             }
         }
 
-        // Getting column names.
-        $columns = $dc_xls_users_fields;
-        $columnindex = count($columns) - 1;
-        if ($lastcolumnindex > $columnindex) {
-            $rolenumber = 1;
-            for ($i = $columnindex + 1; $i <= $lastcolumnindex; $i += 2) {
-                $coursecolumn = 'course' . $rolenumber;
-                $columns[] = $coursecolumn;
-                $rolecolumn = 'role' . $rolenumber;
-                $columns[] = $rolecolumn;
-                $rolenumber++;
+        // Getting column names for each worksheet.
+        foreach ($worksheets as $key => $worksheet) {
+            $columns = $dc_xls_users_fields;
+            $columnindex = count($columns) - 1;
+            if ($lastcolumnindex[$worksheet] > $columnindex) {
+                $rolenumber = 1;
+                for ($i = $columnindex + 1; $i <= $lastcolumnindex[$worksheet]; $i += 2) {
+                    $coursecolumn = 'course' . $rolenumber;
+                    $columns[] = $coursecolumn;
+                    $rolecolumn = 'role' . $rolenumber;
+                    $columns[] = $rolecolumn;
+                    $rolenumber++;
+                }
             }
+            dc_print_column_names($columns, $workbook->$worksheet);
+            dc_set_column_widths($columns, $workbook->$worksheet);
         }
-        dc_print_column_names($columns, $workbook->$worksheet);
-        dc_set_column_widths($columns, $workbook->$worksheet);
     }
 
     return $workbook;
@@ -302,7 +362,7 @@ function dc_get_users($roles, $options = array()) {
             }
         }
 
-        if (isset($options['useoverwrites'])) {
+        if ($options['useoverwrites']) {
             foreach ($dc_xls_users_overwrite as $field => $value) {
                 $user->$field = $value;
             }

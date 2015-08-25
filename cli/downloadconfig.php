@@ -37,7 +37,6 @@ list($options, $unrecognized) = cli_get_params(array(
     'data' => '',
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
-    'force' => false,
     'templatecourse' => '',
     'roles' => '',
     'separatesheets' => true,
@@ -64,9 +63,8 @@ Options:
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
 -t, --templatecourse       Add template course to the downloaded data
 -r, --roles                Specific roles for users (comma separated)
-    --force                Force overwriting the output file: true or false (default)
     --separatesheets       Save the users with each role on separeate worksheets: true (default) or false
-    --useoverwrites        Overwrite specific fields in locallib: true or false (default)
+    --useoverwrites        Overwrite specific fields from locallib: true or false (default)
 
 Example:
 \$php downloadconfig.php --data=courses --format=xls > output.xls
