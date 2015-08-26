@@ -48,7 +48,7 @@ if (empty($options)) {
         $options['data'] = $formdata->data;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = $formdata->roles;
-        $options['separatesheets'] = ($formdata->separatesheets === 'true');
+        $options['separatesheets'] = false;
         $options['useoverwrites'] = ($formdata->useoverwrites === 'true');
         $delimiters = csv_import_reader::get_delimiter_list();
         $options['delimiter'] = $delimiters[$formdata->delimiter_name];
