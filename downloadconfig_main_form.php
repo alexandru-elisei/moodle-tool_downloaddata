@@ -84,6 +84,7 @@ class tool_downloadconfig_main_form extends moodleform {
         $useoverwrites = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'useoverwrites', 
                     get_string('useoverwrites', 'tool_downloadconfig'), $useoverwrites);
+        $mform->addHelpButton('useoverwrites', 'useoverwrites', 'tool_downloadconfig');
         $mform->setDefault('useoverwrites', 'false');
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloadconfig'));

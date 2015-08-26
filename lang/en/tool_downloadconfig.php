@@ -41,3 +41,4 @@ $string['overwritingfile'] = 'Overwriting existing file';
 $string['roles'] = 'Roles';
 $string['separatesheets'] = 'Separate worksheets';
 $string['useoverwrites'] = 'Overwrite fields';
+$string['useoverwrites_help'] = 'This allows specific fields to be overwritten. The fields and their values are located in locallib.php. If the field is not already part of the data, it will be created.';
