@@ -105,10 +105,7 @@ function dc_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
             $columns[] = 'templatecourse';
         }
         dc_print_column_names($columns, $workbook->$worksheet);
-
-        $lastcolumnindex = count($columns) - 1;
-        $workbook->$worksheet->set_column(0, $lastcolumnindex, DC_XLS_COLUMN_WIDTH);
-        dc_set_custom_widths($columns, $workbook->$worksheet);
+        dc_set_column_widths($columns, $workbook->$worksheet);
 
         $row = 1;
         // Saving courses
@@ -153,8 +150,8 @@ function dc_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
                     }
 
                     // Saving course and role fields
-                    foreach ($user->roles as $key => $rolearr) {
-                        foreach ($rolearr as $role => $course) {
+                    foreach ($user->roles as $key => $rolearray) {
+                        foreach ($rolearray as $role => $course) {
                             $workbook->$sheetname->write($worksheetrow[$sheetname], 
                                                          $column, $course);
                             $column++;
@@ -175,8 +172,8 @@ function dc_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
                         $column = 0;
 
                         $hasrole = false;
-                        foreach ($user->roles as $key => $rolearr) {
-                            if (isset($rolearr[$role])) {
+                        foreach ($user->roles as $key => $rolearray) {
+                            if (isset($rolearray[$role])) {
                                 $hasrole = true;
                                 break;
                             }
@@ -187,9 +184,8 @@ function dc_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
                                                         $column, $user->$field);
                                 $column++;
                             }
-
-                            foreach ($user->roles as $key => $rolearr) {
-                                foreach ($rolearr as $r => $c) {
+                            foreach ($user->roles as $key => $rolearray) {
+                                foreach ($rolearray as $r => $c) {
                                     $workbook->$sheetname->write($worksheetrow[$sheetname], 
                                         $column, $c);
                                     $column++;
@@ -240,7 +236,7 @@ function dc_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
  * @param array $roles user roles.
  * @return csv_export_writer.
  */
-function dc_save_to_csv($data, $output, $options, $contents = NULL, $roles = NULL) {
+function dc_save_to_csv($data, $output, $options, $contents, $roles = NULL) {
     global $dc_csv_courses_fields;
     global $dc_csv_users_fields;
     global $DB;
@@ -263,7 +259,51 @@ function dc_save_to_csv($data, $output, $options, $contents = NULL, $roles = NUL
             $csv->add_data($row);
         }
     } else if ($data == DC_DATA_USERS) {
+        $maxrolesnumber = 0;
+        foreach ($contents as $key => $user) {
+            $rolesnumber = count($user->roles);
+            if ($rolesnumber > $maxrolesnumber) {
+                $maxrolesnumber = $rolesnumber;
+            }
+        }
+
+        // Saving field names
+        $row = $dc_csv_users_fields;
+        if ($maxrolesnumber > 0) {
+            for ($i = 1; $i <= $maxrolesnumber; $i++) {
+                $coursename = 'course' . $i;
+                $rolename = 'role' . $i;
+                $row[] = $coursename;
+                $row[] = $rolename;
+            }
+        }
+        $csv->add_data($row);
+        $columnsnumber = count($row);
+
+        foreach ($contents as $key => $user) {
+            if (!empty($user->roles)) {
+                $row = array();
+                foreach ($dc_csv_users_fields as $key => $field) {
+                    $row[] = $user->$field;
+                }
+                foreach ($user->roles as $key => $rolearray) {
+                    foreach($rolearray as $role => $course) {
+                        $row[] = $course;
+                        $row[] = $role;
+                    }
+                }
+                $no = count($row);
+                // Adding blank columns until we have the same number of 
+                // columns.
+                while ($no < $columnsnumber) {
+                    $row[] = '';
+                    $no++;
+                }
+                $csv->add_data($row);
+            }
+        }
     }
+
     return $csv;
 }
 
