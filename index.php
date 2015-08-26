@@ -17,8 +17,7 @@
 /**
  * Download site configuration in a CSV file.
  *
- * @package    tool
- * @subpackage downloadconfig
+ * @package tool_downloadconfig
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,38 +27,59 @@ require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/csvlib.class.php');
 require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->libdir . '/filelib.php');
-//require_once('locallib.php');
-require_once('downloadconfig_form.php');
+require_once('locallib.php');
+require_once('downloadconfig_main_form.php');
 
-$iid         = optional_param('iid', '', PARAM_INT);
-//$previewrows = optional_param('previewrows', 10, PARAM_INT);
-
-//@set_time_limit(60*60); // 1 hour should be enough
-//raise_memory_limit(MEMORY_HUGE);
+core_php_time_limit::raise(60*60); // 1 hour should be enough
+raise_memory_limit(MEMORY_HUGE);
 
 require_login();
 admin_externalpage_setup('tooldownloadconfig');
 require_capability('moodle/course:create', context_system::instance());
+require_capability('moodle/user:create', context_system::instance());
 
-$returnurl = new moodle_url('/admin/tool/downloadconfig/index.php');
-$bulknurl  = new moodle_url('/admin/tool/downloadconfig/index.php');
+if (empty($options)) {
+    $mform1 = new tool_downloadconfig_main_form();
 
-//$today = time();
-//$today = make_timestamp(date('Y', $today), date('m', $today), date('d', $today), 0, 0, 0);
+    // Downloading data.
+    if ($formdata = $mform1->get_data()) {
+        $options = array();
+        $options['format'] = $formdata->format;
+        $options['data'] = $formdata->data;
+        $options['encoding'] = $formdata->encoding;
+        $options['roles'] = $formdata->roles;
+        $options['separatesheets'] = ($formdata->separatesheets === 'true');
+        $options['useoverwrites'] = ($formdata->useoverwrites === 'true');
+        $delimiters = csv_import_reader::get_delimiter_list();
+        $options['delimiter'] = $delimiters[$formdata->delimiter_name];
 
+        $contents = NULL;
+        $roles = NULL;
+        if ($options['data'] == DC_DATA_COURSES) {
+            $contents = dc_get_courses($options);
+            $output = 'courses';
+        } else if ($options['data'] == DC_DATA_USERS) {
+            $roles = dc_resolve_roles($options['roles']);
+            $contents = dc_get_users($roles, $options);
+            $output = 'users';
+        }
 
-$mform1 = new tool_downloadconfig_form();
+        if ($options['format'] == DC_FORMAT_XLS) {
+            $today = date('Ymd') . '_' . date('Hi');
+            $output = $output . '_' . $today . '.xls';
+            $workbook = dc_save_to_excel($options['data'], $output, $options, $contents, $roles);
+            $workbook->close();
+        } else if ($options['format'] == DC_FORMAT_CSV) {
+            $csv = dc_save_to_csv($options['data'], $output, $options, $contents, $roles);
+            $csv->download_file();
+        }
+    } else {
+        // Printing the form.
+        echo $OUTPUT->header();
+        $mform1->display();
+        echo $OUTPUT->footer();
+        die();
+    }
+} 
 
-// Print the form
-echo $OUTPUT->header();
-
-if ($formdata = $mform1->get_data()) {
-    echo 'got data: ';
-    var_dump($formdata);
-} else {
-    echo 'no data, damn';
-}
-
-$mform1->display();
-echo $OUTPUT->footer();
 die;

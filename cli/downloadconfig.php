@@ -37,7 +37,6 @@ list($options, $unrecognized) = cli_get_params(array(
     'data' => '',
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
-    'templatecourse' => '',
     'roles' => '',
     'separatesheets' => true,
     'useoverwrites' => false
@@ -48,7 +47,6 @@ array(
     'd' => 'data',
     'l' => 'delimiter',
     'e' => 'encoding',
-    't' => 'templatecourse',
     'r' => 'roles'
 ));
 
@@ -61,10 +59,9 @@ Options:
 -d, --data                 Data to download: courses or users
 -l, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
--t, --templatecourse       Add template course to the downloaded data
 -r, --roles                Specific roles for users (comma separated)
-    --separatesheets       Save the users with each role on separeate worksheets: true (default) or false
-    --useoverwrites        Overwrite specific fields from locallib: true or false (default)
+    --separatesheets       Separate worksheets for roles: true (default) or false
+    --useoverwrites        Overwrite fields with data from locallib: true or false (default)
 
 Example:
 \$php downloadconfig.php --data=courses --format=xls > output.xls
@@ -142,20 +139,8 @@ if ($data == DC_DATA_COURSES) {
     }
     $contents = dc_get_users($roles, $options);
 }
-//var_dump($contents);
-//var_dump($roles);
-
-/*
-$roles = get_all_roles();
-var_dump($roles);
- */
-
-//die();
 
 $output = "phonyoutput";
-//$workbook = dc_save_to_excel($data, $output, $options, $contents, $roles);
-//die();
-
 if ($format == DC_FORMAT_XLS) {
     $workbook = dc_save_to_excel($data, $output, $options, $contents, $roles);
     $workbook->close();
@@ -163,28 +148,3 @@ if ($format == DC_FORMAT_XLS) {
     $csv = dc_save_to_csv($data, $output, $options, $contents, $roles);
     $csv->download_file();
 }
-
-/*
-$courses = dc_get_data(DC_DATA_COURSES, $options);
-foreach ($courses as $key => $course) {
-    $userfields = 'u.username, u.firstname, u.lastname, u.email';
-    $coursecontext = context_course::instance($course->id);
-    $userinfo = get_role_users(5, $coursecontext, false, $userfields);
-
-    var_dump($userinfo);
-}
- */
-
-/*
-//$users = $DB->get_records('user', null, '', 'username,id');
-$users = $DB->get_records('user');
-var_dump($users);
-foreach($users as $key => $user) {
-    if (isset($user->deleted)) {
-        context_system::instance();
-        delete_user($user);
-    }
-}
- */
-
-//var_dump($contents);

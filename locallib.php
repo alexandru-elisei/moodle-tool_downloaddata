@@ -39,7 +39,7 @@ define('DC_XLS_USERS_WORKSHEET_NAME', 'users');
 define('DC_INVALID_ROLES', 1);
 
 // Custom column widths for the Excel file.
-$dc_column_widths = array(
+$dc_custom_column_widths = array(
     'category_path' => 30,
     'email' => 30
 );
@@ -63,9 +63,14 @@ $dc_csv_users_fields = array(
     'auth'
 );
 
-// Overwrite values for user fields in CSV format.
-$dc_csv_users_overwrite = array(
+// Overwrite values for users fields.
+$dc_users_overwrite = array(
     'auth' => 'ldap'
+);
+
+// Overwrite values for courses fields.
+$dc_courses_overwrite = array(
+    'templatecourse' => 'template',
 );
 
 // Output fields for courses in Excel format.
@@ -73,9 +78,6 @@ $dc_xls_courses_fields = $dc_csv_courses_fields;
 
 // Output fields for users in Excel format.
 $dc_xls_users_fields = $dc_csv_users_fields;
-
-// Overwrite values for user fields in Excel format.
-$dc_xls_users_overwrite = $dc_csv_users_overwrite;
 
 /**
  * Save requested data to a file in the Excel format. Right now, Moodle only 
@@ -86,13 +88,13 @@ $dc_xls_users_overwrite = $dc_csv_users_overwrite;
  * @param array of stdClass $contents the file contents.
  * @param array $options save options.
  * @param array $roles user roles.
- * @return MoodleExcelWorkbook
+ * @return class MoodleExcelWorkbook
  */
 function dc_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
     global $DB;
     global $dc_xls_courses_fields;
     global $dc_xls_users_fields;
-    global $dc_column_widths;
+    global $dc_custom_column_widths;
     global $dc_rolescache;
 
     $workbook = new MoodleExcelWorkbook($output);
@@ -234,19 +236,24 @@ function dc_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
  * @param array of stdClass $contents the file contents.
  * @param array $options save options.
  * @param array $roles user roles.
- * @return csv_export_writer.
+ * @return class csv_export_writer.
  */
 function dc_save_to_csv($data, $output, $options, $contents, $roles = NULL) {
     global $dc_csv_courses_fields;
     global $dc_csv_users_fields;
+    global $dc_users_overwrite;
+    global $dc_courses_overwrite;
     global $DB;
 
     $csv = new csv_export_writer($options['delimiter']);
+    $csv->set_filename($output);
     if ($data == DC_DATA_COURSES) {
         // Saving field names
         $fields = $dc_csv_courses_fields;
-        if (!empty($options['templatecourse'])) {
-            $fields[] = 'templatecourse';
+        if ($options['useoverwrites']) {
+            foreach ($dc_courses_overwrite as $field => $value) {
+                $fields[] = $field;
+            }
         }
         $csv->add_data($fields);
 
@@ -315,6 +322,7 @@ function dc_save_to_csv($data, $output, $options, $contents, $roles = NULL) {
  */
 function dc_get_courses($options = array()) {
     global $DB;
+    global $dc_courses_overwrite;
 
     $courses = $DB->get_records('course');
     // Ignoring course Moodle
@@ -326,10 +334,12 @@ function dc_get_courses($options = array()) {
     }
     foreach ($courses as $key => $course) {
         $course->category_path = dc_resolve_category_path($course->category);
-    }
-    // Adding templatecourse field, if needed
-    if (isset($options['templatecourse'])) {
-        $course->templatecourse = $options['templatecourse'];
+        // Adding overwrite fields and values.
+        if ($options['useoverwrites']) {
+            foreach ($dc_courses_overwrite as $field => $value) {
+                $course->$field = $value;
+            }
+        }
     }
 
     return $courses;
@@ -346,11 +356,10 @@ function dc_get_users($roles, $options = array()) {
     global $DB;
     global $dc_rolescache;
     global $dc_xls_users_fields;
-    global $dc_xls_users_overwrite;
+    global $dc_users_overwrite;
 
     $courses = dc_get_courses($options);
     $users = $DB->get_records('user', array('deleted' => '0'));
-
 
     // Course context cache.
     $cccache = array();
@@ -403,7 +412,7 @@ function dc_get_users($roles, $options = array()) {
         }
 
         if ($options['useoverwrites']) {
-            foreach ($dc_xls_users_overwrite as $field => $value) {
+            foreach ($dc_users_overwrite as $field => $value) {
                 $user->$field = $value;
             }
         }
@@ -443,18 +452,11 @@ function dc_resolve_category_path($parentid) {
 /**
  * Validate and process cli specified user roles.
  *
- * @param string $roles the cli supplied list of roles.
+ * @param string $roles list of roles
  * @return array converted string $roles.
  */
 function dc_resolve_roles($roles) {
     global $dc_rolescache;
-
-    $ret = explode(',', $roles);
-    $allroles = get_all_roles();
-    // Building roles cache.
-    foreach ($allroles as $key => $role) {
-        $dc_rolescache[$role->shortname] = $role->id;
-    }
 
     // Returning all roles if none were specified
     if (empty($roles)) {
@@ -463,6 +465,14 @@ function dc_resolve_roles($roles) {
             $ret[] = $role->shortname;
         }
     } else {
+        $ret = explode(',', $roles);
+        $allroles = get_all_roles();
+        
+        // Building roles cache.
+        foreach ($allroles as $key => $role) {
+            $dc_rolescache[$role->shortname] = $role->id;
+        }
+
         // Checking for invalid roles
         foreach ($ret as $key => $role) {
             if (!isset($dc_rolescache[$role])) {
@@ -470,7 +480,6 @@ function dc_resolve_roles($roles) {
             }
         }
     }
-
     return $ret;
 }
 
@@ -499,13 +508,13 @@ function dc_print_column_names($columns, $worksheet) {
  * @return void.
  */
 function dc_set_column_widths($columns, $worksheet) {
-    global $dc_column_widths;
+    global $dc_custom_column_widths;
 
     $lastcolumnindex = count($columns)-1;
     $worksheet->set_column(0, $lastcolumnindex, DC_XLS_COLUMN_WIDTH);
     foreach ($columns as $no => $name) {
-        if (isset($dc_column_widths[$name])) {
-            $worksheet->set_column($no, $no, $dc_column_widths[$name]);
+        if (isset($dc_custom_column_widths[$name])) {
+            $worksheet->set_column($no, $no, $dc_custom_column_widths[$name]);
         }
     }
 }
