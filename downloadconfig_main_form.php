@@ -54,8 +54,12 @@ class tool_downloadconfig_main_form extends moodleform {
         $allroles = get_all_roles();
         $roles = array();
         foreach ($allroles as $key => $role) {
+            if ($role->shortname != 'guest' &&
+                    $role->shortname != 'frontpage' &&
+                    $role->shortname != 'admin')
             $roles[$role->shortname] = $role->shortname;
         }
+        $roles['all'] = 'All';
         $mform->addElement('select', 'roles', 
                         get_string('roles', 'tool_downloadconfig'), $roles);
         $mform->disabledIf('roles', 'data', 'noteq', DC_DATA_USERS);

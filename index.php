@@ -48,7 +48,7 @@ if (empty($options)) {
         $options['data'] = $formdata->data;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = $formdata->roles;
-        $options['separatesheets'] = false;
+        $options['separatesheets'] = true;
         $options['useoverwrites'] = ($formdata->useoverwrites === 'true');
         $delimiters = csv_import_reader::get_delimiter_list();
         $options['delimiter'] = $delimiters[$formdata->delimiter_name];
@@ -61,7 +61,7 @@ if (empty($options)) {
         } else if ($options['data'] == DC_DATA_USERS) {
             $roles = dc_resolve_roles($options['roles']);
             $contents = dc_get_users($roles, $options);
-            $output = 'users';
+            $output = $options['roles'];
         }
 
         if ($options['format'] == DC_FORMAT_XLS) {

@@ -374,14 +374,15 @@ function dc_get_users($roles, $options = array()) {
             continue;
         }
 
-        // All the user's roles, array of items like $role => $course
-        $userroles = array();
-        $hasrequestedroles = false;
         // Error if users and roles haven't been prepared beforehand.
         if (empty($dc_rolescache)) {
             fputs(STDERR, "Empty dc_rolescache!" . "\n");
             die();
         }
+
+        // All the user's roles, array of items like $role => $course
+        $userroles = array();
+        $hasrequestedroles = false;
         foreach ($courses as $key => $course) {
             // Building course context cache.
             if (!isset($cccache[$course->id])) {
@@ -398,17 +399,12 @@ function dc_get_users($roles, $options = array()) {
                 }
             }
         }
-        // Saving all the users roles if one of his roles was specified.
+        // Saving all the user's roles if he has one of the requested roles.
         if ($hasrequestedroles) {
             $user->roles = $userroles;
+        // User doesn't have any of the requested roles.
         } else {
-            // All users was requested.
-            if (empty($roles)) {
-                $user->roles = $userroles;
-            // User doesn't have any of the specified roles.
-            } else {
-                $user->roles = array();
-            }
+            $user->roles = array();
         }
 
         if ($options['useoverwrites']) {
@@ -458,21 +454,23 @@ function dc_resolve_category_path($parentid) {
 function dc_resolve_roles($roles) {
     global $dc_rolescache;
 
-    // Returning all roles if none were specified
-    if (empty($roles)) {
+    $allroles = get_all_roles();
+    // Building roles cache.
+    foreach ($allroles as $key => $role) {
+        $dc_rolescache[$role->shortname] = $role->id;
+    }
+
+    // Returning all roles.
+    if ($roles == 'all') {
         $ret = array();
         foreach ($allroles as $key => $role) {
+            if ($role->shortname != 'guest' &&
+                    $role->shortname != 'frontpage' &&
+                    $role->shortname != 'admin')
             $ret[] = $role->shortname;
         }
     } else {
         $ret = explode(',', $roles);
-        $allroles = get_all_roles();
-        
-        // Building roles cache.
-        foreach ($allroles as $key => $role) {
-            $dc_rolescache[$role->shortname] = $role->id;
-        }
-
         // Checking for invalid roles
         foreach ($ret as $key => $role) {
             if (!isset($dc_rolescache[$role])) {

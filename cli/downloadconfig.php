@@ -37,7 +37,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'data' => '',
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
-    'roles' => '',
+    'roles' => 'all',
     'separatesheets' => true,
     'useoverwrites' => false
 ),
@@ -59,7 +59,7 @@ Options:
 -d, --data                 Data to download: courses or users
 -l, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
--r, --roles                Specific roles for users (comma separated)
+-r, --roles                Specific roles for users (comma separated) or all roles
     --separatesheets       Separate worksheets for roles: true (default) or false
     --useoverwrites        Overwrite fields with data from locallib: true or false (default)
 
@@ -122,6 +122,18 @@ $options['useoverwrites'] = ($options['useoverwrites'] === true ||
 
 // Emulate admin session.
 cron_setup_user();
+
+/*
+$test = $DB->get_records('role_assignments');
+echo "Role assignments:\n";
+var_dump($test);
+
+$roles = get_all_roles();
+echo "All roles:\n";
+var_dump($roles);
+
+die();
+ */
 
 $contents = NULL;
 $roles = NULL;
