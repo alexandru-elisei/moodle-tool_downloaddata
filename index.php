@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Download site configuration in a CSV file.
+ * Download site data to a csv/xls file.
  *
- * @package tool_downloadconfig
+ * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -28,18 +28,18 @@ require_once($CFG->libdir.'/csvlib.class.php');
 require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once('locallib.php');
-require_once('downloadconfig_main_form.php');
+require_once('index_form.php');
 
 core_php_time_limit::raise(60*60); // 1 hour should be enough
 raise_memory_limit(MEMORY_HUGE);
 
 require_login();
-admin_externalpage_setup('tooldownloadconfig');
+admin_externalpage_setup('tooldownloaddata');
 require_capability('moodle/course:create', context_system::instance());
 require_capability('moodle/user:create', context_system::instance());
 
 if (empty($options)) {
-    $mform1 = new tool_downloadconfig_main_form();
+    $mform1 = new tool_index_form();
 
     // Downloading data.
     if ($formdata = $mform1->get_data()) {
@@ -55,22 +55,22 @@ if (empty($options)) {
 
         $contents = NULL;
         $roles = NULL;
-        if ($options['data'] == DC_DATA_COURSES) {
-            $contents = dc_get_courses($options);
+        if ($options['data'] == DD_DATA_COURSES) {
+            $contents = dd_get_courses($options);
             $output = 'courses';
-        } else if ($options['data'] == DC_DATA_USERS) {
-            $roles = dc_resolve_roles($options['roles']);
-            $contents = dc_get_users($roles, $options);
+        } else if ($options['data'] == DD_DATA_USERS) {
+            $roles = dd_resolve_roles($options['roles']);
+            $contents = dd_get_users($roles, $options);
             $output = $options['roles'];
         }
 
-        if ($options['format'] == DC_FORMAT_XLS) {
+        if ($options['format'] == DD_FORMAT_XLS) {
             $today = date('Ymd') . '_' . date('Hi');
             $output = $output . '_' . $today . '.xls';
-            $workbook = dc_save_to_excel($options['data'], $output, $options, $contents, $roles);
+            $workbook = dd_save_to_excel($options['data'], $output, $options, $contents, $roles);
             $workbook->close();
-        } else if ($options['format'] == DC_FORMAT_CSV) {
-            $csv = dc_save_to_csv($options['data'], $output, $options, $contents, $roles);
+        } else if ($options['format'] == DD_FORMAT_CSV) {
+            $csv = dd_save_to_csv($options['data'], $output, $options, $contents, $roles);
             $csv->download_file();
         }
     } else {

@@ -17,8 +17,7 @@
 /**
  * Plugin version info.
  *
- * @package    tool
- * @subpackage downloadconfig
+ * @package    tool_downloaddata
  * @copyright  2015 Alexndru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -27,5 +26,4 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2015081700; // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2015050500; // Requires this Moodle version
-$plugin->component = 'tool_downloadconfig'; // Full name of the plugin (used for diagnostics)
-
+$plugin->component = 'tool_downloaddata'; // Full name of the plugin (used for diagnostics)

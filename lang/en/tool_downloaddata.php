@@ -13,16 +13,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Strings for component 'tool_downloadconfig', language 'en'
+ * Strings for component 'tool_downloaddata', language 'en'
  *
- * @package    tool
- * @subpackage downloadconfig
+ * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'Download site configuration';
-$string['downloadconfig'] = 'Download configuration';
+$string['pluginname'] = 'Download site data';
+$string['downloaddata'] = 'Download data';
 $string['download'] = 'Download';
 $string['downloadcourses'] = 'Download all courses';
 $string['data'] = 'Data file';

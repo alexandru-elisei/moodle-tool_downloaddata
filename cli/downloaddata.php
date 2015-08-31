@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * CLI download moodle configuration file.
+ * CLI download moodle data file.
  *
- * @package    tool_downloadconfig
+ * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -51,7 +51,7 @@ array(
 ));
 
 $help =
-"\nDownload Moodle configuration file.
+"\nDownload Moodle data file.
 
 Options:
 -h, --help                 Print out this help
@@ -64,7 +64,7 @@ Options:
     --useoverwrites        Overwrite fields with data from locallib: true or false (default)
 
 Example:
-\$php downloadconfig.php --data=courses --format=xls > output.xls
+\$php downloaddata.php --data=users --roles=all --format=xls > output.xls
 
 ";
 
@@ -80,22 +80,22 @@ if ($options['help']) {
 }
 
 $dataoptions = array(
-    'courses' => DC_DATA_COURSES,
-    'users' => DC_DATA_USERS
+    'courses' => DD_DATA_COURSES,
+    'users' => DD_DATA_USERS
 );
 if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
-    fputs(STDERR, get_string('invaliddata', 'tool_downloadconfig'). "\n");
+    fputs(STDERR, get_string('invaliddata', 'tool_downloaddata'). "\n");
     fputs(STDERR, $help);
     die();
 }
 $data = $dataoptions[$options['data']];
 
 $formats = array(
-    'csv' => DC_FORMAT_CSV,
-    'xls' => DC_FORMAT_XLS
+    'csv' => DD_FORMAT_CSV,
+    'xls' => DD_FORMAT_XLS
 );
 if (!isset($options['format']) || !isset($formats[$options['format']])) {
-    fputs(STDERR, get_string('invalidformat', 'tool_downloadconfig'));
+    fputs(STDERR, get_string('invalidformat', 'tool_downloaddata'));
     fputs(STDERR, $help);
     die();
 }
@@ -103,14 +103,14 @@ $format = $formats[$options['format']];
 
 $encodings = core_text::get_encodings();
 if (!isset($encodings[$options['encoding']])) {
-    fputs(STDERR, get_string('invalidencoding', 'tool_downloadconfig'));
+    fputs(STDERR, get_string('invalidencoding', 'tool_downloaddata'));
     fputs(STDERR, $help);
     die();
 }
 
 $delimiters = csv_import_reader::get_delimiter_list();
 if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) {
-    fputs(STDERR, get_string('invaliddelimiter', 'tool_downloadconfig'));
+    fputs(STDERR, get_string('invaliddelimiter', 'tool_downloaddata'));
     fputs(STDERR, $help);
     die();
 }
@@ -123,40 +123,28 @@ $options['useoverwrites'] = ($options['useoverwrites'] === true ||
 // Emulate admin session.
 cron_setup_user();
 
-/*
-$test = $DB->get_records('role_assignments');
-echo "Role assignments:\n";
-var_dump($test);
-
-$roles = get_all_roles();
-echo "All roles:\n";
-var_dump($roles);
-
-die();
- */
-
 $contents = NULL;
 $roles = NULL;
-if ($data == DC_DATA_COURSES) {
-    $contents = dc_get_courses($options);
+if ($data == DD_DATA_COURSES) {
+    $contents = dd_get_courses($options);
     if (empty($contents)) {
-        fputs(STDERR, get_string('emptycontents', 'tool_downloadconfig') . "\n");
+        fputs(STDERR, get_string('emptycontents', 'tool_downloaddata') . "\n");
         die();
     }
-} else if ($data == DC_DATA_USERS) {
-    $roles = dc_resolve_roles($options['roles']);
-    if ($roles == DC_INVALID_ROLES) {
-        fputs(STDERR, get_string('invalidroles', 'tool_downloadconfig') . "\n");
+} else if ($data == DD_DATA_USERS) {
+    $roles = dd_resolve_roles($options['roles']);
+    if ($roles == DD_INVALID_ROLES) {
+        fputs(STDERR, get_string('invalidroles', 'tool_downloaddata') . "\n");
         die();
     }
-    $contents = dc_get_users($roles, $options);
+    $contents = dd_get_users($roles, $options);
 }
 
 $output = "phonyoutput";
-if ($format == DC_FORMAT_XLS) {
-    $workbook = dc_save_to_excel($data, $output, $options, $contents, $roles);
+if ($format == DD_FORMAT_XLS) {
+    $workbook = dd_save_to_excel($data, $output, $options, $contents, $roles);
     $workbook->close();
-} else if ($format == DC_FORMAT_CSV) {
-    $csv = dc_save_to_csv($data, $output, $options, $contents, $roles);
+} else if ($format == DD_FORMAT_CSV) {
+    $csv = dd_save_to_csv($data, $output, $options, $contents, $roles);
     $csv->download_file();
 }

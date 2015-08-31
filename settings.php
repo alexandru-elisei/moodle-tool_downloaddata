@@ -15,24 +15,22 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Link to download config.
+ * Link to download data.
  *
- * @package    tool
- * @subpackage downloadconfig
+ * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die;
 
-// Entry in Site administration -> Reports -> Download configuration
+// Entry in Site administration -> Reports -> Download data
 if (has_capability('moodle/course:create', context_system::instance())) {
-    //$ADMIN->add('root', new admin_category('upb_curs', 'Cursuri UPB'));
     $ADMIN->add(
         'reports', 
         new admin_externalpage(
-            'tooldownloadconfig', get_string('downloadconfig', 'tool_downloadconfig'),
-            "$CFG->wwwroot/$CFG->admin/tool/downloadconfig/index.php", 
+            'tooldownloaddata', get_string('downloaddata', 'tool_downloaddata'),
+            "$CFG->wwwroot/$CFG->admin/tool/downloaddata/index.php", 
             'moodle/course:create'
         )
     );
