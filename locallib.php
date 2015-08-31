@@ -339,6 +339,13 @@ function dd_get_courses($options = array()) {
             foreach ($dd_courses_overwrite as $field => $value) {
                 $course->$field = $value;
             }
+			if (date("Y", $course->startdate) == "2014") {
+				$course->templatecourse = "CS1";
+			} else if (date("Y", $course->startdate) == "2015") {
+				$course->templatecourse = "CS2";
+			} else {
+				$course->templatecourse = "CS1";
+			}
         }
     }
 
