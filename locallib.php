@@ -349,6 +349,10 @@ function dd_get_courses($options = array()) {
         }
     }
 
+    if ($options['sortcourses']) {
+        usort($courses, "sort_by_category_alphabetically");
+    }
+
     return $courses;
 }
 
@@ -422,6 +426,24 @@ function dd_get_users($roles, $options = array()) {
     }
 
     return $users;
+}
+
+/**
+ * Internal function to sort the courses by category path alphabetically. It 
+ * will be passed to usort.
+ *
+ * @param stdClass first element to be compared.
+ * @param stdClass second element to be compared.
+ * @return int 0 if equality, 1 if first is higher, -1 otherwise.
+ */
+function sort_by_category_alphabetically($a, $b) {
+    if ($a->category_path == $b->category_path) {
+        return 0;
+    } else if ($a->category_path > $b->category_path) {
+        return 1;
+    } else {
+        return -1;
+    }
 }
 
 /**
