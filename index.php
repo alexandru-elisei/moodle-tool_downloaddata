@@ -50,8 +50,7 @@ if (empty($options)) {
         $options['roles'] = $formdata->roles;
         $options['separatesheets'] = true;
         $options['useoverwrites'] = ($formdata->useoverwrites === 'true');
-        $delimiters = csv_import_reader::get_delimiter_list();
-        $options['delimiter'] = $delimiters[$formdata->delimiter_name];
+        $options['delimiter'] = $formdata->delimiter_name;
         $options['sortcourses'] = true;
 
         $contents = NULL;
