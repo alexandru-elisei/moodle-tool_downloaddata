@@ -40,7 +40,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'roles' => 'all',
     'separatesheets' => true,
     'useoverwrites' => false,
-    'sortcourses' => true
+    'sortbycategorypath' => true
 ),
 array(
     'h' => 'help',
@@ -49,7 +49,7 @@ array(
     'l' => 'delimiter',
     'e' => 'encoding',
     'r' => 'roles',
-    's' => 'sortcourses'
+    's' => 'sortbycategorypath'
 ));
 
 $help =
@@ -62,7 +62,7 @@ Options:
 -l, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
 -r, --roles                Specific roles for users (comma separated) or all roles
--s, --sortcourses          Sort by category path alphabetically: true (default) or false
+-s, --sortbycategorypath   Sort courses by category path alphabetically: true (default) or false
     --separatesheets       Separate worksheets for roles: true (default) or false
     --useoverwrites        Overwrite fields with data from locallib: true or false (default)
 
@@ -122,8 +122,8 @@ $options['separatesheets'] = ($options['separatesheets'] === true ||
             core_text::strtolower($options['separatesheets']) == 'true');
 $options['useoverwrites'] = ($options['useoverwrites'] === true ||
             core_text::strtolower($options['useoverwrites']) == 'true');
-$options['sortcourses'] = ($options['sortcourses'] === true ||
-            core_text::strtolower($options['sortcourses']) == 'true');
+$options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
+            core_text::strtolower($options['sortbycategorypath']) == 'true');
 
 // Emulate admin session.
 cron_setup_user();

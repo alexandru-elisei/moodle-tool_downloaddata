@@ -378,7 +378,7 @@ function dd_get_courses($options = array()) {
         }
     }
 
-    if ($options['sortcourses']) {
+    if ($options['sortbycategorypath']) {
         usort($courses, "sort_by_category_alphabetically");
     }
 
