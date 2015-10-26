@@ -92,6 +92,13 @@ class tool_index_form extends moodleform {
         $mform->addHelpButton('useoverwrites', 'useoverwrites', 'tool_downloaddata');
         $mform->setDefault('useoverwrites', 'false');
 
+        $sortbycategorypath = array('true' => 'Yes', 'false' => 'No');
+        $mform->addElement('select', 'sortbycategorypath', 
+                    get_string('sortbycategorypath', 'tool_downloaddata'), $sortbycategorypath);
+        $mform->setDefault('sortbycategorypath', 'true');
+        $mform->addHelpButton('sortbycategorypath', 'sortbycategorypath', 'tool_downloaddata');
+        $mform->disabledIf('sortbycategorypath', 'data', 'noteq', DD_DATA_COURSES);
+
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
     }
 }

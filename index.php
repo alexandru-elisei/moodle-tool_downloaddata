@@ -50,6 +50,7 @@ if (empty($options)) {
         $options['roles'] = $formdata->roles;
         $options['separatesheets'] = true;
         $options['useoverwrites'] = ($formdata->useoverwrites === 'true');
+        $options['sortcourses'] = ($formdata->sortbycategorypath === 'true');
         $options['delimiter'] = $formdata->delimiter_name;
         $options['sortcourses'] = true;
 
