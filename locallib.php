@@ -67,7 +67,6 @@ $dd_csv_users_fields = array(
 
 // Overwrite values for users fields.
 $dd_users_overwrite = array(
-    'auth' => 'ldap'
 );
 
 // Overwrite values for courses fields.
@@ -187,7 +186,6 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = NULL) {
                     foreach ($roles as $key => $role) {
                         $sheetname = $role;
                         $column = 0;
-
                         $hasrole = false;
                         foreach ($user->roles as $key => $rolearray) {
                             if (isset($rolearray[$role])) {
@@ -364,17 +362,6 @@ function dd_get_courses($options = array()) {
             foreach ($dd_courses_overwrite as $field => $value) {
                 $course->$field = $value;
             }
-			if (date('Y', $course->startdate) == '2015') {
-				// ISO8601 format.
-				$course->startdate = '2016-02-22';
-				$course->templatecourse = 'CS2';
-			} else if (date('Y', $course->startdate) == '2014') {
-				// ISO8601 format.
-				$course->startdate = '2015-10-01';
-				$course->templatecourse = 'CS1';
-			} else {
-				$course->templatecourse = 'CS1';
-			}
         }
     }
 
@@ -417,7 +404,6 @@ function dd_get_users($roles, $options = array()) {
 
     $courses = dd_get_courses($options);
     $users = array();
-
 	// Finding users with specified roles assigned to the courses.
     foreach ($courses as $key => $course) {
 		$coursecontext = context_course::instance($course->id);
@@ -440,7 +426,6 @@ function dd_get_users($roles, $options = array()) {
 			foreach ($dd_users_overwrite as $field => $value) {
 				$user->$field = $value;
 			}
-			unset($user->roleid);
 		}
 	}
     return $users;
