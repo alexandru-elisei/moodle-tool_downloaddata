@@ -23,8 +23,10 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->libdir . '/excellib.class.php');
 require_once($CFG->libdir . '/coursecatlib.php');
+require_once('config.php');
 
 define('DD_DATA_COURSES', 0);
 define('DD_DATA_USERS', 1);
@@ -38,51 +40,8 @@ define('DD_XLS_USERS_WORKSHEET_NAME', 'users');
 
 define('DD_INVALID_ROLES', 1);
 
-// Custom column widths for the Excel file.
-$dd_custom_column_widths = array(
-    'category_path' => 30,
-	'email' => 30,
-	'username' => 16
-);
-
 // Cache for roles.
 $dd_rolescache = array();
-
-// Output fields for courses in CSV format.
-$dd_csv_courses_fields = array(
-    'shortname',
-    'fullname',
-	'category_path',
-	'startdate'
-);
-
-// Output fields for users in CSV format.
-$dd_csv_users_fields = array(
-    'username',
-    'firstname',
-    'lastname',
-    'email',
-    'auth'
-);
-
-// Overwrite values for users fields.
-$dd_users_overwrite = array(
-);
-
-// Overwrite values for courses fields.
-$dd_courses_overwrite = array(
-    'templatecourse' => 'templatecourse',
-	'enrolment_1' => 'manual',
-	'enrolment_1_role' => 'student',
-	'enrolment_2' => 'self',
-	'enrolment_2_role' => 'student'
-);
-
-// Output fields for courses in Excel format.
-$dd_xls_courses_fields = $dd_csv_courses_fields;
-
-// Output fields for users in Excel format.
-$dd_xls_users_fields = $dd_csv_users_fields;
 
 /**
  * Save requested data to a file in the Excel format. Right now, Moodle only
