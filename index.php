@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Download site data to a csv/xls file.
+ * Web interface for downloading users or courses.
  *
  * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
@@ -49,27 +49,27 @@ if (empty($options)) {
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = $formdata->roles;
         $options['separatesheets'] = true;
-        $options['useoverwrites'] = ($formdata->useoverwrites === 'true');
-        $options['sortbycategorypath'] = ($formdata->sortbycategorypath === 'true');
+        $options['useoverwrites'] = ($formdata->useoverwrites == 'true');
+        $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;
 
-        $contents = NULL;
-        $roles = NULL;
-        if ($options['data'] == DD_DATA_COURSES) {
+        $contents = null;
+        $roles = null;
+        if ($options['data'] == ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES) {
             $contents = dd_get_courses($options);
             $output = 'courses';
-        } else if ($options['data'] == DD_DATA_USERS) {
+        } else if ($options['data'] == ADMIN_TOOL_DOWNLOADDATA_DATA_USERS) {
             $roles = dd_resolve_roles($options['roles']);
             $contents = dd_get_users($roles, $options);
             $output = $options['roles'];
         }
 
-        if ($options['format'] == DD_FORMAT_XLS) {
+        if ($options['format'] == ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS) {
             $today = date('Ymd') . '_' . date('Hi');
             $output = $output . '_' . $today . '.xls';
             $workbook = dd_save_to_excel($options['data'], $output, $options, $contents, $roles);
             $workbook->close();
-        } else if ($options['format'] == DD_FORMAT_CSV) {
+        } else if ($options['format'] == ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV) {
             $csv = dd_save_to_csv($options['data'], $output, $options, $contents, $roles);
             $csv->download_file();
         }

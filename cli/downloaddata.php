@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * CLI download moodle data file.
+ * CLI script for downloading users or courses.
  *
  * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
@@ -28,7 +28,7 @@ require(__DIR__ . '/../../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/coursecatlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
-require_once('../locallib.php');
+require_once(__DIR__ . '/../locallib.php');
 
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(
@@ -83,8 +83,8 @@ if ($options['help']) {
 }
 
 $dataoptions = array(
-    'courses' => DD_DATA_COURSES,
-    'users' => DD_DATA_USERS
+    'courses' => ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES,
+    'users' => ADMIN_TOOL_DOWNLOADDATA_DATA_USERS
 );
 if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
     fputs(STDERR, get_string('invaliddata', 'tool_downloaddata'). "\n");
@@ -94,8 +94,8 @@ if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
 $data = $dataoptions[$options['data']];
 
 $formats = array(
-    'csv' => DD_FORMAT_CSV,
-    'xls' => DD_FORMAT_XLS
+    'csv' => ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV,
+    'xls' => ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS
 );
 if (!isset($options['format']) || !isset($formats[$options['format']])) {
     fputs(STDERR, get_string('invalidformat', 'tool_downloaddata'));
@@ -119,37 +119,37 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
 }
 
 $options['separatesheets'] = ($options['separatesheets'] === true ||
-            core_text::strtolower($options['separatesheets']) == 'true');
+                              core_text::strtolower($options['separatesheets']) == 'true');
 $options['useoverwrites'] = ($options['useoverwrites'] === true ||
-            core_text::strtolower($options['useoverwrites']) == 'true');
+                             core_text::strtolower($options['useoverwrites']) == 'true');
 $options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
-            core_text::strtolower($options['sortbycategorypath']) == 'true');
+                                  core_text::strtolower($options['sortbycategorypath']) == 'true');
 
 // Emulate admin session.
 cron_setup_user();
 
-$contents = NULL;
-$roles = NULL;
-if ($data == DD_DATA_COURSES) {
+$contents = null;
+$roles = null;
+if ($data == ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES) {
     $contents = dd_get_courses($options);
     if (empty($contents)) {
         fputs(STDERR, get_string('emptycontents', 'tool_downloaddata') . "\n");
         die();
     }
-} else if ($data == DD_DATA_USERS) {
+} else if ($data == ADMIN_TOOL_DOWNLOADDATA_DATA_USERS) {
     $roles = dd_resolve_roles($options['roles']);
-    if ($roles == DD_INVALID_ROLES) {
+    if ($roles == ADMIN_TOOL_DOWNLOADDATA_INVALID_ROLES) {
         fputs(STDERR, get_string('invalidroles', 'tool_downloaddata') . "\n");
         die();
     }
     $contents = dd_get_users($roles, $options);
 }
 
-$output = "phonyoutput";
-if ($format == DD_FORMAT_XLS) {
+$output = 'phonyoutput';
+if ($format == ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS) {
     $workbook = dd_save_to_excel($data, $output, $options, $contents, $roles);
     $workbook->close();
-} else if ($format == DD_FORMAT_CSV) {
+} else if ($format == ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV) {
     $csv = dd_save_to_csv($data, $output, $options, $contents, $roles);
     $csv->download_file();
 }

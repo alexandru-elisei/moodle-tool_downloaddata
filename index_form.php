@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
  * Download site data form.
@@ -44,8 +44,8 @@ class tool_index_form extends moodleform {
         $mform->addElement('header', 'generalhdr', get_string('download', 'tool_downloaddata'));
 
         $file_choices = array(
-            DD_DATA_COURSES => 'Courses',
-            DD_DATA_USERS => 'Users',
+            ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES => 'Courses',
+            ADMIN_TOOL_DOWNLOADDATA_DATA_USERS => 'Users',
         );
         $mform->addElement('select', 'data', 
             get_string('data', 'tool_downloaddata'), $file_choices);
@@ -55,49 +55,49 @@ class tool_index_form extends moodleform {
         $roles = array();
         foreach ($allroles as $key => $role) {
             // Ignoring system roles.
-            if ($role->shortname != 'guest' &&
-                    $role->shortname != 'frontpage' &&
-                    $role->shortname != 'admin')
-            $roles[$role->shortname] = $role->shortname;
+            $isguest = ($role->shortname == 'guest');
+            $isfrontpage = ($role->shortname == 'frontpage');
+            $isadmin = ($role->shortname == 'admin');
+            if (!$isguest && !$isfrontpage && !$isadmin) {
+                $roles[$role->shortname] = $role->shortname;
+            }
         }
         $roles['all'] = 'All';
-        $mform->addElement('select', 'roles', 
-                        get_string('roles', 'tool_downloaddata'), $roles);
-        $mform->disabledIf('roles', 'data', 'noteq', DD_DATA_USERS);
+        $mform->addElement('select', 'roles', get_string('roles', 'tool_downloaddata'), $roles);
+        $mform->disabledIf('roles', 'data', 'noteq', ADMIN_TOOL_DOWNLOADDATA_DATA_USERS);
         $mform->setDefault('roles', 'editingteacher');
 
         $format_choices = array(
-            DD_FORMAT_CSV => 'Comma separated values (.csv)',
-            DD_FORMAT_XLS => 'Microsoft Excel 2007 workbook (.xls)'
+            ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV => 'Comma separated values (.csv)',
+            ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS => 'Microsoft Excel 2007 workbook (.xls)'
         );
         $mform->addElement('select', 'format', 
             get_string('format', 'tool_downloaddata'), $format_choices);
         $mform->setDefault('format', 'csv');
 
         $encodings = core_text::get_encodings();
-        $mform->addElement('select', 'encoding', 
-                    get_string('encoding', 'tool_downloaddata'), $encodings);
+        $mform->addElement('select', 'encoding', get_string('encoding', 'tool_downloaddata'), $encodings);
         $mform->setDefault('encoding', 'UTF-8');
-        $mform->disabledIf('encoding', 'format', 'noteq', DD_FORMAT_CSV);
+        $mform->disabledIf('encoding', 'format', 'noteq', ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV);
 
         $delimiters = csv_import_reader::get_delimiter_list();
         $mform->addElement('select', 'delimiter_name', 
-                    get_string('csvdelimiter', 'tool_downloaddata'), $delimiters);
+                           get_string('csvdelimiter', 'tool_downloaddata'), $delimiters);
         $mform->setDefault('delimiter_name', 'comma');
-        $mform->disabledIf('delimiter_name', 'format', 'noteq', DD_FORMAT_CSV);
+        $mform->disabledIf('delimiter_name', 'format', 'noteq', ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV);
 
         $useoverwrites = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'useoverwrites', 
-                    get_string('useoverwrites', 'tool_downloaddata'), $useoverwrites);
+                           get_string('useoverwrites', 'tool_downloaddata'), $useoverwrites);
         $mform->addHelpButton('useoverwrites', 'useoverwrites', 'tool_downloaddata');
         $mform->setDefault('useoverwrites', 'false');
 
         $sortbycategorypath = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'sortbycategorypath', 
-                    get_string('sortbycategorypath', 'tool_downloaddata'), $sortbycategorypath);
+                           get_string('sortbycategorypath', 'tool_downloaddata'), $sortbycategorypath);
         $mform->setDefault('sortbycategorypath', 'true');
         $mform->addHelpButton('sortbycategorypath', 'sortbycategorypath', 'tool_downloaddata');
-        $mform->disabledIf('sortbycategorypath', 'data', 'noteq', DD_DATA_COURSES);
+        $mform->disabledIf('sortbycategorypath', 'data', 'noteq', ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES);
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
     }
