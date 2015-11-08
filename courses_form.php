@@ -27,13 +27,13 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Download users and courses form.
+ * Download courses form.
  *
  * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class tool_index_form extends moodleform {
+class admin_tool_downloaddata_courses_form extends moodleform {
 
     /**
      * The standard form definiton.
@@ -41,31 +41,7 @@ class tool_index_form extends moodleform {
      */
     public function definition () {
         $mform = $this->_form;
-        $mform->addElement('header', 'generalhdr', get_string('download', 'tool_downloaddata'));
-
-        $file_choices = array(
-            ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES => 'Courses',
-            ADMIN_TOOL_DOWNLOADDATA_DATA_USERS => 'Users',
-        );
-        $mform->addElement('select', 'data', 
-            get_string('data', 'tool_downloaddata'), $file_choices);
-        $mform->setDefault('data', 'courses');
-
-        $allroles = get_all_roles();
-        $roles = array();
-        foreach ($allroles as $key => $role) {
-            // Ignoring system roles.
-            $isguest = ($role->shortname == 'guest');
-            $isfrontpage = ($role->shortname == 'frontpage');
-            $isadmin = ($role->shortname == 'admin');
-            if (!$isguest && !$isfrontpage && !$isadmin) {
-                $roles[$role->shortname] = $role->shortname;
-            }
-        }
-        $roles['all'] = 'All';
-        $mform->addElement('select', 'roles', get_string('roles', 'tool_downloaddata'), $roles);
-        $mform->disabledIf('roles', 'data', 'noteq', ADMIN_TOOL_DOWNLOADDATA_DATA_USERS);
-        $mform->setDefault('roles', 'editingteacher');
+        $mform->addElement('header', 'generalhdr', get_string('downloadcourses', 'tool_downloaddata'));
 
         $format_choices = array(
             ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV => 'Comma separated values (.csv)',
@@ -91,13 +67,6 @@ class tool_index_form extends moodleform {
                            get_string('useoverwrites', 'tool_downloaddata'), $useoverwrites);
         $mform->addHelpButton('useoverwrites', 'useoverwrites', 'tool_downloaddata');
         $mform->setDefault('useoverwrites', 'false');
-
-        $useseparatesheets = array('true' => 'Yes', 'false' => 'No');
-        $mform->addElement('select', 'useseparatesheets', 
-                           get_string('useseparatesheets', 'tool_downloaddata'), $useseparatesheets);
-        $mform->setDefault('useseparatesheets', 'true');
-        $mform->addHelpButton('useseparatesheets', 'useseparatesheets', 'tool_downloaddata');
-        $mform->disabledIf('useseparatesheets', 'data', 'noteq', ADMIN_TOOL_DOWNLOADDATA_DATA_USERS);
 
         $sortbycategorypath = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'sortbycategorypath', 

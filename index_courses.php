@@ -22,48 +22,39 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require('../../../config.php');
+require(__DIR__ . '/../../../config.php');
 require_once($CFG->libdir.'/adminlib.php');
 require_once($CFG->libdir.'/csvlib.class.php');
 require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->libdir . '/filelib.php');
-require_once('locallib.php');
-require_once('index_form.php');
+require_once(__DIR__ . '/locallib.php');
+require_once(__DIR__ . '/courses_form.php');
 
 core_php_time_limit::raise(60*60); // 1 hour should be enough
 raise_memory_limit(MEMORY_HUGE);
 
 require_login();
-admin_externalpage_setup('tooldownloaddata');
+admin_externalpage_setup('tooldownloaddata_courses');
 require_capability('moodle/course:create', context_system::instance());
-require_capability('moodle/user:create', context_system::instance());
 
 if (empty($options)) {
-    $mform1 = new tool_index_form();
+    $mform1 = new admin_tool_downloaddata_courses_form();
 
     // Downloading data.
     if ($formdata = $mform1->get_data()) {
         $options = array();
         $options['format'] = $formdata->format;
-        $options['data'] = $formdata->data;
+        $options['data'] = ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES;
         $options['encoding'] = $formdata->encoding;
-        $options['roles'] = $formdata->roles;
-        $options['useseparatesheets'] = ($formdata->useseparatesheets == 'true');
+        $options['roles'] = array();
+        $options['useseparatesheets'] = false;
         $options['useoverwrites'] = ($formdata->useoverwrites == 'true');
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;
 
-        $contents = null;
+        $contents = dd_get_courses($options);
+        $output = 'courses';
         $roles = null;
-        if ($options['data'] == ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES) {
-            $contents = dd_get_courses($options);
-            $output = 'courses';
-        } else if ($options['data'] == ADMIN_TOOL_DOWNLOADDATA_DATA_USERS) {
-            $roles = dd_resolve_roles($options['roles']);
-            $contents = dd_get_users($roles, $options);
-            $output = $options['roles'];
-        }
-
         if ($options['format'] == ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS) {
             $today = date('Ymd') . '_' . date('Hi');
             $output = $output . '_' . $today . '.xls';

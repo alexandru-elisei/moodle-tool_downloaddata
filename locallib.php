@@ -72,6 +72,7 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
     global $ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS;
     global $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
 	global $ADMIN_TOOL_DOWNLOADDATA_USER_OVERWRITES;
+	global $ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
     global $ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE;
     global $ADMIN_TOOL_DOWNLOADATA_WORKSHEET_NAMES;
 
@@ -81,9 +82,13 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
         $workbook->$worksheet = $workbook->add_worksheet($worksheet);
 
         $columns = $ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS;
-        if (!empty($options['templatecourse'])) {
-            $columns[] = 'templatecourse';
-        }
+		if ($options['useoverwrites']) {
+			foreach ($ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
+				if (!array_search($field, $columns)) {
+					$columns[] = $field;
+				}
+			}
+		}
         dd_print_column_names($columns, $workbook->$worksheet);
         dd_set_column_widths($columns, $workbook->$worksheet);
 

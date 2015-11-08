@@ -24,14 +24,26 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-// Entry in Site administration -> Reports -> Download data
+// Entry in Site administration -> Courses -> Download courses
 if (has_capability('moodle/course:create', context_system::instance())) {
     $ADMIN->add(
-        'reports', 
+        'courses', 
         new admin_externalpage(
-            'tooldownloaddata', get_string('downloaddata', 'tool_downloaddata'),
-            "$CFG->wwwroot/$CFG->admin/tool/downloaddata/index.php", 
+            'tooldownloaddata_courses', get_string('downloadcourses', 'tool_downloaddata'),
+            "$CFG->wwwroot/$CFG->admin/tool/downloaddata/index_courses.php", 
             'moodle/course:create'
+        )
+    );
+}
+
+// Entry in Site administration -> Users -> Accounts -> Download users
+if (has_capability('moodle/site:uploadusers', context_system::instance())) {
+    $ADMIN->add(
+        'accounts', 
+        new admin_externalpage(
+            'tooldownloaddata_users', get_string('downloadusers', 'tool_downloaddata'),
+            "$CFG->wwwroot/$CFG->admin/tool/downloaddata/index_users.php", 
+            'moodle/site:uploadusers'
         )
     );
 }

@@ -20,10 +20,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 $string['pluginname'] = 'Download users and courses';
-$string['downloaddata'] = 'Download users and courses';
+$string['downloadcourses'] = 'Download courses';
+$string['downloadusers'] = 'Download users';
 $string['download'] = 'Download';
-$string['downloadcourses'] = 'Download all courses';
-$string['data'] = 'Data file';
 $string['format'] = 'File format';
 $string['cliunknownoption'] = 'Unknown cli script parameter';
 $string['invaliddata'] = 'Invalid data selected';
