@@ -100,7 +100,7 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
         // Current row for each worksheet.
         $worksheetrow = array();
         $lastcolumnindex = array();
-        if ($options['separatesheets']) {
+        if ($options['useseparatesheets']) {
             foreach ($roles as $key => $role) {
                 $sheetname = $role;
                 $worksheets[] = $sheetname;
@@ -128,7 +128,7 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
             // Print user info only if their role was requested.
 			if (!empty($user->roles)) {
                 // Print all users on one worksheet.
-                if (!$options['separatesheets']) {
+                if (!$options['useseparatesheets']) {
                     $sheetname = reset($worksheets);
                     $column = 0;
                     foreach ($userfields as $key => $field) {

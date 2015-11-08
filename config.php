@@ -54,7 +54,7 @@ $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV = array(
 // Output fields for users in Excel format.
 $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_XLS = $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
 
-// Default worksheet names, when not using separate sheets.
+// Default worksheet names when not using separate worksheets.
 $ADMIN_TOOL_DOWNLOADATA_WORKSHEET_NAMES = array(
     'users' => 'users',
     'courses' => 'courses',

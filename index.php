@@ -48,7 +48,7 @@ if (empty($options)) {
         $options['data'] = $formdata->data;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = $formdata->roles;
-        $options['separatesheets'] = true;
+        $options['useseparatesheets'] = true;
         $options['useoverwrites'] = ($formdata->useoverwrites == 'true');
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;
