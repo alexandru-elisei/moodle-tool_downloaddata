@@ -19,8 +19,8 @@
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-$string['pluginname'] = 'Download site data';
-$string['downloaddata'] = 'Download data';
+$string['pluginname'] = 'Download users and courses';
+$string['downloaddata'] = 'Download users and courses';
 $string['download'] = 'Download';
 $string['downloadcourses'] = 'Download all courses';
 $string['data'] = 'Data file';
@@ -38,7 +38,8 @@ $string['emptyroles'] = 'No roles specified';
 $string['invalidroles'] = 'Invalid roles';
 $string['overwritingfile'] = 'Overwriting existing file';
 $string['roles'] = 'Roles';
-$string['separatesheets'] = 'Separate worksheets';
+$string['useseparatesheets'] = 'Use separate worksheets';
 $string['useoverwrites'] = 'Overwrite fields';
 $string['useoverwrites_help'] = 'This allows specific fields to be overwritten. The fields and their values are located in locallib.php. If the field is not already part of the data, it will be created.';
+$string['useseparatesheets_help'] = 'Group users by their roles and print them to separate worksheets.';
 $string['sortbycategorypath_help'] = 'Sort courses in alphabetic order by category path. Useful if using different paths similar to "Year 1 / Semester 1", "Year 1 / Semester 2" and so on.';

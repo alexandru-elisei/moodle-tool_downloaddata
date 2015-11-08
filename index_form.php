@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Download site data form.
+ * Download users and courses form.
  *
  * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
@@ -91,6 +91,13 @@ class tool_index_form extends moodleform {
                            get_string('useoverwrites', 'tool_downloaddata'), $useoverwrites);
         $mform->addHelpButton('useoverwrites', 'useoverwrites', 'tool_downloaddata');
         $mform->setDefault('useoverwrites', 'false');
+
+        $useseparatesheets = array('true' => 'Yes', 'false' => 'No');
+        $mform->addElement('select', 'useseparatesheets', 
+                           get_string('useseparatesheets', 'tool_downloaddata'), $useseparatesheets);
+        $mform->setDefault('useseparatesheets', 'true');
+        $mform->addHelpButton('useseparatesheets', 'useseparatesheets', 'tool_downloaddata');
+        $mform->disabledIf('useseparatesheets', 'data', 'noteq', ADMIN_TOOL_DOWNLOADDATA_DATA_USERS);
 
         $sortbycategorypath = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'sortbycategorypath', 
