@@ -36,7 +36,8 @@ class tool_downloaddata_config {
         'default' => 13,
         'category_path' => 30,
         'email' => 30,
-        'username' => 16
+        'username' => 16,
+        'startdate' => 20,
     );
 
     /**

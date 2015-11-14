@@ -85,7 +85,7 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
 			}
 		}
         tool_downloaddata_print_column_names($columns, $workbook->$worksheet);
-        tool_downloaddata_set_columnwidths($columns, $workbook->$worksheet);
+        tool_downloaddata_set_column_widths($columns, $workbook->$worksheet);
 
         $row = 1;
         // Saving courses
@@ -201,7 +201,7 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
                 }
             }
             tool_downloaddata_print_column_names($columns, $workbook->$worksheet);
-            tool_downloaddata_set_columnwidths($columns, $workbook->$worksheet);
+            tool_downloaddata_set_column_widths($columns, $workbook->$worksheet);
         }
     }
 
@@ -319,6 +319,8 @@ function tool_downloaddata_get_courses($options = null) {
     }
     foreach ($courses as $key => $course) {
         $course->category_path = tool_downloaddata_resolve_category_path($course->category);
+        // Formating startdate to the ISO8601 format.
+        $course->startdate = userdate($course->startdate, '%Y-%m-%d');
         // Adding overwrite fields and values.
         if ($options['useoverwrites']) {
             foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
@@ -491,7 +493,7 @@ function tool_downloaddata_print_column_names($columns, $worksheet) {
  * @param string[] $columns column names.
  * @param MoodleExcelWorksheet $worksheet the worksheet.
  */
-function tool_downloaddata_set_columnwidths($columns, $worksheet) {
+function tool_downloaddata_set_column_widths($columns, $worksheet) {
     $lastcolumnindex = count($columns)-1;
     $worksheet->set_column(0, $lastcolumnindex, tool_downloaddata_config::$columnwidths['default']);
     foreach ($columns as $no => $name) {
