@@ -33,6 +33,3 @@ Copyright (C) Alexandru Elisei 2015 and beyond, All right reserved.
 moodle-tool_downloaddata is free software; you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software Foundation; either version 3 of the license, or (at your option) any later version.
 
 This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of the MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
-
-#### UPB specific functionality
-On branch 'upb' in locallib.php (lines 342 to 348) it is possible to specify which template course to use based on the startdate of the course (you still need to set the "useoverwrites" flag to enable this functionality).
