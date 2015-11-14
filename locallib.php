@@ -69,28 +69,23 @@ $TOOL_DOWNLOADDATA_ROLESCACHE = array();
  */
 function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $roles = null) {
     global $DB;
-    global $TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS;
-    global $TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
-	global $TOOL_DOWNLOADDATA_USER_OVERWRITES;
-	global $TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
     global $TOOL_DOWNLOADDATA_ROLESCACHE;
-    global $TOOL_DOWNLOADDATA_WORKSHEET_NAMES;
 
     $workbook = new MoodleExcelWorkbook($output);
     if ($data == TOOL_DOWNLOADDATA_DATA_COURSES) {
-        $worksheet = $TOOL_DOWNLOADDATA_WORKSHEET_NAMES['courses'];
+        $worksheet = tool_downloaddata_config::$worksheetnames['courses'];
         $workbook->$worksheet = $workbook->add_worksheet($worksheet);
 
-        $columns = $TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS;
+        $columns = tool_downloaddata_config::$coursefields;
 		if ($options['useoverwrites']) {
-			foreach ($TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
+			foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
 				if (!array_search($field, $columns)) {
 					$columns[] = $field;
 				}
 			}
 		}
         tool_downloaddata_print_column_names($columns, $workbook->$worksheet);
-        tool_downloaddata_set_column_widths($columns, $workbook->$worksheet);
+        tool_downloaddata_set_columnwidths($columns, $workbook->$worksheet);
 
         $row = 1;
         // Saving courses
@@ -114,15 +109,16 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
                 $lastcolumnindex[$sheetname] = 0;
             }
         } else {
-            $sheetname = $TOOL_DOWNLOADDATA_WORKSHEET_NAMES['users'];
+            $sheetname = tool_downloaddata_config::$worksheetnames['users'];
             $worksheets[] = $sheetname;
             $workbook->$sheetname = $workbook->add_worksheet($sheetname);
             $worksheetrow[$sheetname] = 1;
             $lastcolumnindex[$sheetname] = 0;
         }
-		$userfields = $TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
+
+		$userfields = tool_downloaddata_config::$userfields;
 		if ($options['useoverwrites']) {
-			foreach ($TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
+			foreach (tool_downloaddata_config::$useroverwrites as $field => $value) {
 				if (!array_search($field, $userfields)) {
 					$userfields[] = $field;
 				}
@@ -205,7 +201,7 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
                 }
             }
             tool_downloaddata_print_column_names($columns, $workbook->$worksheet);
-            tool_downloaddata_set_column_widths($columns, $workbook->$worksheet);
+            tool_downloaddata_set_columnwidths($columns, $workbook->$worksheet);
         }
     }
 
@@ -223,19 +219,15 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
  * @return class csv_export_writer.
  */
 function tool_downloaddata_save_to_csv($data, $output, $options, $contents, $roles = null) {
-    global $TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
-    global $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
-    global $TOOL_DOWNLOADDATA_USER_OVERWRITES;
-    global $TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
     global $DB;
 
     $csv = new csv_export_writer($options['delimiter']);
     $csv->set_filename($output);
     if ($data == TOOL_DOWNLOADDATA_DATA_COURSES) {
         // Saving field names
-        $fields = $TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
+        $fields = tool_downloaddata_config::$coursefields;
         if ($options['useoverwrites']) {
-            foreach ($TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
+            foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
 				if (!array_search($field, $fields)) {
 					$fields[] = $field;
 				}
@@ -261,9 +253,9 @@ function tool_downloaddata_save_to_csv($data, $output, $options, $contents, $rol
         }
 
         // Saving field names
-        $userfields = $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
+        $userfields = tool_downloaddata_config::$userfields;
 		if ($options['useoverwrites']) {
-			foreach ($TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
+			foreach (tool_downloaddata_config::$useroverwrites as $field => $value) {
 				if (!array_search($field, $userfields)) {
 					$userfields[] = $field;
 				}
@@ -316,7 +308,6 @@ function tool_downloaddata_save_to_csv($data, $output, $options, $contents, $rol
  */
 function tool_downloaddata_get_courses($options = null) {
     global $DB;
-    global $TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
 
     $courses = $DB->get_records('course');
     // Ignoring course Moodle
@@ -330,7 +321,7 @@ function tool_downloaddata_get_courses($options = null) {
         $course->category_path = tool_downloaddata_resolve_category_path($course->category);
         // Adding overwrite fields and values.
         if ($options['useoverwrites']) {
-            foreach ($TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
+            foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
                 $course->$field = $value;
             }
         }
@@ -354,9 +345,6 @@ function tool_downloaddata_get_courses($options = null) {
 function tool_downloaddata_get_users($roles, $options = null) {
     global $DB;
     global $TOOL_DOWNLOADDATA_ROLESCACHE;
-    global $TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
-    global $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
-    global $TOOL_DOWNLOADDATA_USER_OVERWRITES;
 
 	// Error if roles haven't been prepared beforehand.
 	if (empty($TOOL_DOWNLOADDATA_ROLESCACHE)) {
@@ -364,11 +352,7 @@ function tool_downloaddata_get_users($roles, $options = null) {
 	}
 
 	// Constructing the requested user fields.
-	if (isset($options['format']) && $options['format'] == 'xls') {
-		$userfields = $TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
-	} else {
-		$userfields = $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
-	}
+    $userfields = tool_downloaddata_config::$userfields;
 	foreach ($userfields as $key => $field) {
 		$field = 'u.' . $field;
 	}
@@ -394,7 +378,7 @@ function tool_downloaddata_get_users($roles, $options = null) {
 	// Overwriting fields.
 	if (isset($options['useoverwrites']) && $options['useoverwrites']) {
 		foreach ($users as $username => $user) {
-			foreach ($TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
+			foreach (tool_downloaddata_config::$useroverwrites as $field => $value) {
 				$user->$field = $value;
 			}
 		}
@@ -507,14 +491,12 @@ function tool_downloaddata_print_column_names($columns, $worksheet) {
  * @param string[] $columns column names.
  * @param MoodleExcelWorksheet $worksheet the worksheet.
  */
-function tool_downloaddata_set_column_widths($columns, $worksheet) {
-    global $TOOL_DOWNLOADDATA_COLUMN_WIDTHS;
-
+function tool_downloaddata_set_columnwidths($columns, $worksheet) {
     $lastcolumnindex = count($columns)-1;
-    $worksheet->set_column(0, $lastcolumnindex, $TOOL_DOWNLOADDATA_COLUMN_WIDTHS['default']);
+    $worksheet->set_column(0, $lastcolumnindex, tool_downloaddata_config::$columnwidths['default']);
     foreach ($columns as $no => $name) {
-        if (isset($TOOL_DOWNLOADDATA_COLUMN_WIDTHS[$name])) {
-            $worksheet->set_column($no, $no, $TOOL_DOWNLOADDATA_COLUMN_WIDTHS[$name]);
+        if (isset(tool_downloaddata_config::$columnwidths[$name])) {
+            $worksheet->set_column($no, $no, tool_downloaddata_config::$columnwidths[$name]);
         }
     }
 }

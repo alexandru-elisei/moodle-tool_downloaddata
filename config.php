@@ -24,44 +24,58 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Custom column widths for the Excel file.
-$TOOL_DOWNLOADDATA_COLUMN_WIDTHS = array(
-    'default' => 13,
-    'category_path' => 30,
-	'email' => 30,
-	'username' => 16
-);
+/**
+ * Class with configuration options.
+ */
+class tool_downloaddata_config {
+    
+    /**
+     * Column widths for xls (Excel 2007) file format.
+     */
+    public static $columnwidths = array(
+        'default' => 13,
+        'category_path' => 30,
+        'email' => 30,
+        'username' => 16
+    );
 
-// Output fields for courses in CSV format.
-$TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV = array(
-    'shortname',
-    'fullname',
-	'category_path',
-);
+    /**
+     * Output fields for courses.
+     */
+    public static $coursefields = array(
+        'shortname',
+        'fullname',
+        'category_path',
+    );
 
-// Output fields for courses in Excel format.
-$TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS = $TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
+    /**
+     * Output fields for users.
+     */
+    public static $userfields = array(
+        'username',
+        'firstname',
+        'lastname',
+        'email',
+        'auth'
+    );
 
-// Output fields for users in CSV format.
-$TOOL_DOWNLOADDATA_USER_FIELDS_CSV = array(
-    'username',
-    'firstname',
-    'lastname',
-    'email',
-    'auth'
-);
+    /**
+     * Default worksheet names when not using separate worksheets.
+     */
+    public static $worksheetnames = array(
+        'users' => 'users',
+        'courses' => 'courses',
+    );
 
-// Output fields for users in Excel format.
-$TOOL_DOWNLOADDATA_USER_FIELDS_XLS = $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
+    /**
+     * Overwrite values for course fields. Array of 'field' => 'overwrite value' 
+     * elements.
+     */
+    public static $courseoverwrites = array();
 
-// Default worksheet names when not using separate worksheets.
-$TOOL_DOWNLOADDATA_WORKSHEET_NAMES = array(
-    'users' => 'users',
-    'courses' => 'courses',
-);
-
-// Overwrite values for course fields.
-$TOOL_DOWNLOADDATA_COURSE_OVERWRITES = array();
-
-// Overwrite values for user fields.
-$TOOL_DOWNLOADDATA_USER_OVERWRITES = array();
+    /**
+     * Overwrite values for user fields. Array of 'field' => 'overwrite value' 
+     * elements.
+     */
+    public static $useroverwrites = array();
+}

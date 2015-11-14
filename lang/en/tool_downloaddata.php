@@ -19,26 +19,25 @@
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-$string['pluginname'] = 'Download users and courses';
+$string['cliunknownoption'] = 'Unknown cli script parameter';
+$string['csvdelimiter'] = 'CSV delimiter';
+$string['download'] = 'Download';
 $string['downloadcourses'] = 'Download courses';
 $string['downloadusers'] = 'Download users';
-$string['download'] = 'Download';
-$string['format'] = 'File format';
-$string['cliunknownoption'] = 'Unknown cli script parameter';
-$string['invaliddata'] = 'Invalid data selected';
-$string['encoding'] = 'Encoding';
-$string['sortbycategorypath'] = 'Sort by category path';
-$string['invalidformat'] = 'Invalid format';
-$string['invaliddelimiter'] = 'Invalid CSV delimiter';
-$string['csvdelimiter'] = 'CSV delimiter';
-$string['invalidencoding'] = 'Invalid encoding';
 $string['emptycontents'] = 'No data found';
 $string['emptyroles'] = 'No roles specified';
+$string['encoding'] = 'Encoding';
+$string['format'] = 'File format';
+$string['invaliddata'] = 'Invalid data selected';
+$string['invaliddelimiter'] = 'Invalid CSV delimiter';
+$string['invalidencoding'] = 'Invalid encoding';
+$string['invalidformat'] = 'Invalid format';
 $string['invalidroles'] = 'Invalid roles';
-$string['overwritingfile'] = 'Overwriting existing file';
+$string['pluginname'] = 'Download users and courses';
 $string['roles'] = 'Roles';
-$string['useseparatesheets'] = 'Use separate worksheets';
-$string['useoverwrites'] = 'Overwrite fields';
-$string['useoverwrites_help'] = 'This allows specific fields to be overwritten. The fields and their values are located in locallib.php. If the field is not already part of the data, it will be created.';
-$string['useseparatesheets_help'] = 'Group users by their roles and print them to separate worksheets.';
+$string['sortbycategorypath'] = 'Sort by category path';
 $string['sortbycategorypath_help'] = 'Sort courses in alphabetic order by category path. Useful if using different paths similar to "Year 1 / Semester 1", "Year 1 / Semester 2" and so on.';
+$string['useoverwrites'] = 'Overwrite fields';
+$string['useoverwrites_help'] = 'This allows specific fields to be overwritten. The fields and their values are located in config.php. If the field is not already part of the data, it will be created.';
+$string['useseparatesheets'] = 'Use separate worksheets';
+$string['useseparatesheets_help'] = 'Group users by their roles and print them on separate worksheets.';
