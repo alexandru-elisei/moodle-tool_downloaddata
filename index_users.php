@@ -38,13 +38,13 @@ admin_externalpage_setup('tooldownloaddata_users');
 require_capability('moodle/user:create', context_system::instance());
 
 if (empty($options)) {
-    $mform1 = new admin_tool_downloaddata_users_form();
+    $mform1 = new tool_downloaddata_users_form();
 
     // Downloading data.
     if ($formdata = $mform1->get_data()) {
         $options = array();
         $options['format'] = $formdata->format;
-        $options['data'] = ADMIN_TOOL_DOWNLOADDATA_DATA_USERS;
+        $options['data'] = TOOL_DOWNLOADDATA_DATA_USERS;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = $formdata->roles;
         $options['useseparatesheets'] = ($formdata->useseparatesheets == 'true');
@@ -54,16 +54,16 @@ if (empty($options)) {
 
         $contents = null;
         $roles = null;
-        $roles = dd_resolve_roles($options['roles']);
-        $contents = dd_get_users($roles, $options);
+        $roles = tool_downloaddata_resolve_roles($options['roles']);
+        $contents = tool_downloaddata_get_users($roles, $options);
         $output = $options['roles'];
-        if ($options['format'] == ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS) {
+        if ($options['format'] == TOOL_DOWNLOADDATA_FORMAT_XLS) {
             $today = date('Ymd') . '_' . date('Hi');
             $output = $output . '_' . $today . '.xls';
-            $workbook = dd_save_to_excel($options['data'], $output, $options, $contents, $roles);
+            $workbook = tool_downloaddata_save_to_excel($options['data'], $output, $options, $contents, $roles);
             $workbook->close();
-        } else if ($options['format'] == ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV) {
-            $csv = dd_save_to_csv($options['data'], $output, $options, $contents, $roles);
+        } else if ($options['format'] == TOOL_DOWNLOADDATA_FORMAT_CSV) {
+            $csv = tool_downloaddata_save_to_csv($options['data'], $output, $options, $contents, $roles);
             $csv->download_file();
         }
     } else {

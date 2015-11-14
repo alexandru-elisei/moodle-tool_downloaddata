@@ -38,13 +38,13 @@ admin_externalpage_setup('tooldownloaddata_courses');
 require_capability('moodle/course:create', context_system::instance());
 
 if (empty($options)) {
-    $mform1 = new admin_tool_downloaddata_courses_form();
+    $mform1 = new tool_downloaddata_courses_form();
 
     // Downloading data.
     if ($formdata = $mform1->get_data()) {
         $options = array();
         $options['format'] = $formdata->format;
-        $options['data'] = ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES;
+        $options['data'] = TOOL_DOWNLOADDATA_DATA_COURSES;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = array();
         $options['useseparatesheets'] = false;
@@ -52,16 +52,16 @@ if (empty($options)) {
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;
 
-        $contents = dd_get_courses($options);
+        $contents = tool_downloaddata_get_courses($options);
         $output = 'courses';
         $roles = null;
-        if ($options['format'] == ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS) {
+        if ($options['format'] == TOOL_DOWNLOADDATA_FORMAT_XLS) {
             $today = date('Ymd') . '_' . date('Hi');
             $output = $output . '_' . $today . '.xls';
-            $workbook = dd_save_to_excel($options['data'], $output, $options, $contents, $roles);
+            $workbook = tool_downloaddata_save_to_excel($options['data'], $output, $options, $contents, $roles);
             $workbook->close();
-        } else if ($options['format'] == ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV) {
-            $csv = dd_save_to_csv($options['data'], $output, $options, $contents, $roles);
+        } else if ($options['format'] == TOOL_DOWNLOADDATA_FORMAT_CSV) {
+            $csv = tool_downloaddata_save_to_csv($options['data'], $output, $options, $contents, $roles);
             $csv->download_file();
         }
     } else {

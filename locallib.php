@@ -29,32 +29,32 @@ require_once($CFG->libdir . '/coursecatlib.php');
 require_once(__DIR__ . '/config.php');
 
 /**
- * ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES - download courses.
+ * TOOL_DOWNLOADDATA_DATA_COURSES - download courses.
  */
-define('ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES', 0);
+define('TOOL_DOWNLOADDATA_DATA_COURSES', 0);
 
 /**
- * ADMIN_TOOL_DOWNLOADDATA_DATA_USERS - download users.
+ * TOOL_DOWNLOADDATA_DATA_USERS - download users.
  */
-define('ADMIN_TOOL_DOWNLOADDATA_DATA_USERS', 1);
+define('TOOL_DOWNLOADDATA_DATA_USERS', 1);
 
 /**
- * ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV - use csv format for downloaded data.
+ * TOOL_DOWNLOADDATA_FORMAT_CSV - use csv format for downloaded data.
  */
-define('ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV', 0);
+define('TOOL_DOWNLOADDATA_FORMAT_CSV', 0);
 
 /**
- * ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS - use Excel 2007 (xls) format for downloaded data.
+ * TOOL_DOWNLOADDATA_FORMAT_XLS - use Excel 2007 (xls) format for downloaded data.
  */
-define('ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS', 1);
+define('TOOL_DOWNLOADDATA_FORMAT_XLS', 1);
 
 /**
- * ADMIN_TOOL_DOWNLOADDATA_INVALID_ROLES - non-existent user roles requested.
+ * TOOL_DOWNLOADDATA_INVALID_ROLES - non-existent user roles requested.
  */
-define('ADMIN_TOOL_DOWNLOADDATA_INVALID_ROLES', 1);
+define('TOOL_DOWNLOADDATA_INVALID_ROLES', 1);
 
 // Cache for roles.
-$ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE = array();
+$TOOL_DOWNLOADDATA_ROLESCACHE = array();
 
 /**
  * Save requested data to a file in the Excel format. Right now, Moodle only
@@ -67,30 +67,30 @@ $ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE = array();
  * @param string[] $roles user roles.
  * @return MoodleExcelWorkbook
  */
-function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
+function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $roles = null) {
     global $DB;
-    global $ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS;
-    global $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
-	global $ADMIN_TOOL_DOWNLOADDATA_USER_OVERWRITES;
-	global $ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
-    global $ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE;
-    global $ADMIN_TOOL_DOWNLOADATA_WORKSHEET_NAMES;
+    global $TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS;
+    global $TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
+	global $TOOL_DOWNLOADDATA_USER_OVERWRITES;
+	global $TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
+    global $TOOL_DOWNLOADDATA_ROLESCACHE;
+    global $TOOL_DOWNLOADDATA_WORKSHEET_NAMES;
 
     $workbook = new MoodleExcelWorkbook($output);
-    if ($data == ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES) {
-        $worksheet = $ADMIN_TOOL_DOWNLOADATA_WORKSHEET_NAMES['courses'];
+    if ($data == TOOL_DOWNLOADDATA_DATA_COURSES) {
+        $worksheet = $TOOL_DOWNLOADDATA_WORKSHEET_NAMES['courses'];
         $workbook->$worksheet = $workbook->add_worksheet($worksheet);
 
-        $columns = $ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS;
+        $columns = $TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS;
 		if ($options['useoverwrites']) {
-			foreach ($ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
+			foreach ($TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
 				if (!array_search($field, $columns)) {
 					$columns[] = $field;
 				}
 			}
 		}
-        dd_print_column_names($columns, $workbook->$worksheet);
-        dd_set_column_widths($columns, $workbook->$worksheet);
+        tool_downloaddata_print_column_names($columns, $workbook->$worksheet);
+        tool_downloaddata_set_column_widths($columns, $workbook->$worksheet);
 
         $row = 1;
         // Saving courses
@@ -100,7 +100,7 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
             }
             $row++;
         }
-    } else if ($data == ADMIN_TOOL_DOWNLOADDATA_DATA_USERS) {
+    } else if ($data == TOOL_DOWNLOADDATA_DATA_USERS) {
         $worksheets = array();
         // Current row for each worksheet.
         $worksheetrow = array();
@@ -114,15 +114,15 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
                 $lastcolumnindex[$sheetname] = 0;
             }
         } else {
-            $sheetname = $ADMIN_TOOL_DOWNLOADATA_WORKSHEET_NAMES['users'];
+            $sheetname = $TOOL_DOWNLOADDATA_WORKSHEET_NAMES['users'];
             $worksheets[] = $sheetname;
             $workbook->$sheetname = $workbook->add_worksheet($sheetname);
             $worksheetrow[$sheetname] = 1;
             $lastcolumnindex[$sheetname] = 0;
         }
-		$userfields = $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
+		$userfields = $TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
 		if ($options['useoverwrites']) {
-			foreach ($ADMIN_TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
+			foreach ($TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
 				if (!array_search($field, $userfields)) {
 					$userfields[] = $field;
 				}
@@ -204,8 +204,8 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
                     $rolenumber++;
                 }
             }
-            dd_print_column_names($columns, $workbook->$worksheet);
-            dd_set_column_widths($columns, $workbook->$worksheet);
+            tool_downloaddata_print_column_names($columns, $workbook->$worksheet);
+            tool_downloaddata_set_column_widths($columns, $workbook->$worksheet);
         }
     }
 
@@ -222,20 +222,20 @@ function dd_save_to_excel($data, $output, $options, $contents, $roles = null) {
  * @param string[] $roles user roles.
  * @return class csv_export_writer.
  */
-function dd_save_to_csv($data, $output, $options, $contents, $roles = null) {
-    global $ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
-    global $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
-    global $ADMIN_TOOL_DOWNLOADDATA_USER_OVERWRITES;
-    global $ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
+function tool_downloaddata_save_to_csv($data, $output, $options, $contents, $roles = null) {
+    global $TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
+    global $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
+    global $TOOL_DOWNLOADDATA_USER_OVERWRITES;
+    global $TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
     global $DB;
 
     $csv = new csv_export_writer($options['delimiter']);
     $csv->set_filename($output);
-    if ($data == ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES) {
+    if ($data == TOOL_DOWNLOADDATA_DATA_COURSES) {
         // Saving field names
-        $fields = $ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
+        $fields = $TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
         if ($options['useoverwrites']) {
-            foreach ($ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
+            foreach ($TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
 				if (!array_search($field, $fields)) {
 					$fields[] = $field;
 				}
@@ -251,7 +251,7 @@ function dd_save_to_csv($data, $output, $options, $contents, $roles = null) {
             }
             $csv->add_data($row);
         }
-    } else if ($data == ADMIN_TOOL_DOWNLOADDATA_DATA_USERS) {
+    } else if ($data == TOOL_DOWNLOADDATA_DATA_USERS) {
         $maxrolesnumber = 0;
         foreach ($contents as $key => $user) {
             $rolesnumber = count($user->roles);
@@ -261,9 +261,9 @@ function dd_save_to_csv($data, $output, $options, $contents, $roles = null) {
         }
 
         // Saving field names
-        $userfields = $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
+        $userfields = $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
 		if ($options['useoverwrites']) {
-			foreach ($ADMIN_TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
+			foreach ($TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
 				if (!array_search($field, $userfields)) {
 					$userfields[] = $field;
 				}
@@ -314,9 +314,9 @@ function dd_save_to_csv($data, $output, $options, $contents, $roles = null) {
  * @param string[] $options function options.
  * @return stdClass[] the courses.
  */
-function dd_get_courses($options = null) {
+function tool_downloaddata_get_courses($options = null) {
     global $DB;
-    global $ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
+    global $TOOL_DOWNLOADDATA_COURSE_OVERWRITES;
 
     $courses = $DB->get_records('course');
     // Ignoring course Moodle
@@ -327,10 +327,10 @@ function dd_get_courses($options = null) {
         }
     }
     foreach ($courses as $key => $course) {
-        $course->category_path = dd_resolve_category_path($course->category);
+        $course->category_path = tool_downloaddata_resolve_category_path($course->category);
         // Adding overwrite fields and values.
         if ($options['useoverwrites']) {
-            foreach ($ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
+            foreach ($TOOL_DOWNLOADDATA_COURSE_OVERWRITES as $field => $value) {
                 $course->$field = $value;
             }
         }
@@ -351,36 +351,36 @@ function dd_get_courses($options = null) {
  * @param string[] $options function options.
  * @return stdClass[] the users.
  */
-function dd_get_users($roles, $options = null) {
+function tool_downloaddata_get_users($roles, $options = null) {
     global $DB;
-    global $ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE;
-    global $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
-    global $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
-    global $ADMIN_TOOL_DOWNLOADDATA_USER_OVERWRITES;
+    global $TOOL_DOWNLOADDATA_ROLESCACHE;
+    global $TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
+    global $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
+    global $TOOL_DOWNLOADDATA_USER_OVERWRITES;
 
 	// Error if roles haven't been prepared beforehand.
-	if (empty($ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE)) {
+	if (empty($TOOL_DOWNLOADDATA_ROLESCACHE)) {
         throw new coding_exception("Cannot proceed, roles haven't been resolved.");
 	}
 
 	// Constructing the requested user fields.
 	if (isset($options['format']) && $options['format'] == 'xls') {
-		$userfields = $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
+		$userfields = $TOOL_DOWNLOADDATA_USER_FIELDS_XLS;
 	} else {
-		$userfields = $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
+		$userfields = $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
 	}
 	foreach ($userfields as $key => $field) {
 		$field = 'u.' . $field;
 	}
 	$userfields = implode(',', $userfields);
 
-    $courses = dd_get_courses($options);
+    $courses = tool_downloaddata_get_courses($options);
     $users = array();
 	// Finding users with specified roles assigned to the courses.
     foreach ($courses as $key => $course) {
 		$coursecontext = context_course::instance($course->id);
 		foreach ($roles as $key => $role) {
-			$usersassigned = get_role_users($ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE[$role], $coursecontext, false, $userfields);
+			$usersassigned = get_role_users($TOOL_DOWNLOADDATA_ROLESCACHE[$role], $coursecontext, false, $userfields);
 			foreach ($usersassigned as $username => $user) {
 				if (!isset($users[$username])) {
 					$users[$username] = $user;
@@ -394,7 +394,7 @@ function dd_get_users($roles, $options = null) {
 	// Overwriting fields.
 	if (isset($options['useoverwrites']) && $options['useoverwrites']) {
 		foreach ($users as $username => $user) {
-			foreach ($ADMIN_TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
+			foreach ($TOOL_DOWNLOADDATA_USER_OVERWRITES as $field => $value) {
 				$user->$field = $value;
 			}
 		}
@@ -426,7 +426,7 @@ function sort_by_category_alphabetically($a, $b) {
  * @param int $parentid the parent id.
  * @return string the category hierarchy.
  */
-function dd_resolve_category_path($parentid) {
+function tool_downloaddata_resolve_category_path($parentid) {
     global $DB;
 
     $path = '';
@@ -454,13 +454,13 @@ function dd_resolve_category_path($parentid) {
  * @param string $roles comma separated list of roles.
  * @return string[] $roles numerically indexed array of roles.
  */
-function dd_resolve_roles($roles) {
-    global $ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE;
+function tool_downloaddata_resolve_roles($roles) {
+    global $TOOL_DOWNLOADDATA_ROLESCACHE;
 
     $allroles = get_all_roles();
     // Building roles cache.
     foreach ($allroles as $key => $role) {
-        $ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE[$role->shortname] = $role->id;
+        $TOOL_DOWNLOADDATA_ROLESCACHE[$role->shortname] = $role->id;
     }
 
     // Returning all roles.
@@ -478,8 +478,8 @@ function dd_resolve_roles($roles) {
         $ret = explode(',', $roles);
         // Checking for invalid roles
         foreach ($ret as $key => $role) {
-            if (!isset($ADMIN_TOOL_DOWNLOADDATA_ROLESCACHE[$role])) {
-                return ADMIN_TOOL_DOWNLOADDATA_INVALID_ROLES;
+            if (!isset($TOOL_DOWNLOADDATA_ROLESCACHE[$role])) {
+                return TOOL_DOWNLOADDATA_INVALID_ROLES;
             }
         }
     }
@@ -492,14 +492,13 @@ function dd_resolve_roles($roles) {
  * @param string[] $columns column names.
  * @param MoodleExcelWorksheet $worksheet the worksheet.
  */
-function dd_print_column_names($columns, $worksheet) {
+function tool_downloaddata_print_column_names($columns, $worksheet) {
     $firstrow = 0;
     $column = 0;
     foreach ($columns as $key => $name) {
         $worksheet->write($firstrow, $column, $name);
         $column++;
     }
-    $worksheet->set_row($firstrow, null, array('h_align' => 'right'));
 }
 
 /**
@@ -508,14 +507,14 @@ function dd_print_column_names($columns, $worksheet) {
  * @param string[] $columns column names.
  * @param MoodleExcelWorksheet $worksheet the worksheet.
  */
-function dd_set_column_widths($columns, $worksheet) {
-    global $ADMIN_TOOL_DOWNLOADDATA_COLUMN_WIDTHS;
+function tool_downloaddata_set_column_widths($columns, $worksheet) {
+    global $TOOL_DOWNLOADDATA_COLUMN_WIDTHS;
 
     $lastcolumnindex = count($columns)-1;
-    $worksheet->set_column(0, $lastcolumnindex, $ADMIN_TOOL_DOWNLOADDATA_COLUMN_WIDTHS['default']);
+    $worksheet->set_column(0, $lastcolumnindex, $TOOL_DOWNLOADDATA_COLUMN_WIDTHS['default']);
     foreach ($columns as $no => $name) {
-        if (isset($ADMIN_TOOL_DOWNLOADDATA_COLUMN_WIDTHS[$name])) {
-            $worksheet->set_column($no, $no, $ADMIN_TOOL_DOWNLOADDATA_COLUMN_WIDTHS[$name]);
+        if (isset($TOOL_DOWNLOADDATA_COLUMN_WIDTHS[$name])) {
+            $worksheet->set_column($no, $no, $TOOL_DOWNLOADDATA_COLUMN_WIDTHS[$name]);
         }
     }
 }

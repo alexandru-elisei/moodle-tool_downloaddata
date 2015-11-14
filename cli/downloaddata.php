@@ -83,8 +83,8 @@ if ($options['help']) {
 }
 
 $dataoptions = array(
-    'courses' => ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES,
-    'users' => ADMIN_TOOL_DOWNLOADDATA_DATA_USERS
+    'courses' => TOOL_DOWNLOADDATA_DATA_COURSES,
+    'users' => TOOL_DOWNLOADDATA_DATA_USERS
 );
 if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
     fputs(STDERR, get_string('invaliddata', 'tool_downloaddata'). "\n");
@@ -94,8 +94,8 @@ if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
 $data = $dataoptions[$options['data']];
 
 $formats = array(
-    'csv' => ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV,
-    'xls' => ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS
+    'csv' => TOOL_DOWNLOADDATA_FORMAT_CSV,
+    'xls' => TOOL_DOWNLOADDATA_FORMAT_XLS
 );
 if (!isset($options['format']) || !isset($formats[$options['format']])) {
     fputs(STDERR, get_string('invalidformat', 'tool_downloaddata'));
@@ -130,26 +130,26 @@ cron_setup_user();
 
 $contents = null;
 $roles = null;
-if ($data == ADMIN_TOOL_DOWNLOADDATA_DATA_COURSES) {
-    $contents = dd_get_courses($options);
+if ($data == TOOL_DOWNLOADDATA_DATA_COURSES) {
+    $contents = tool_downloaddata_get_courses($options);
     if (empty($contents)) {
         fputs(STDERR, get_string('emptycontents', 'tool_downloaddata') . "\n");
         die();
     }
-} else if ($data == ADMIN_TOOL_DOWNLOADDATA_DATA_USERS) {
-    $roles = dd_resolve_roles($options['roles']);
-    if ($roles == ADMIN_TOOL_DOWNLOADDATA_INVALID_ROLES) {
+} else if ($data == TOOL_DOWNLOADDATA_DATA_USERS) {
+    $roles = tool_downloaddata_resolve_roles($options['roles']);
+    if ($roles == TOOL_DOWNLOADDATA_INVALID_ROLES) {
         fputs(STDERR, get_string('invalidroles', 'tool_downloaddata') . "\n");
         die();
     }
-    $contents = dd_get_users($roles, $options);
+    $contents = tool_downloaddata_get_users($roles, $options);
 }
 
 $output = 'phonyoutput';
-if ($format == ADMIN_TOOL_DOWNLOADDATA_FORMAT_XLS) {
-    $workbook = dd_save_to_excel($data, $output, $options, $contents, $roles);
+if ($format == TOOL_DOWNLOADDATA_FORMAT_XLS) {
+    $workbook = tool_downloaddata_save_to_excel($data, $output, $options, $contents, $roles);
     $workbook->close();
-} else if ($format == ADMIN_TOOL_DOWNLOADDATA_FORMAT_CSV) {
-    $csv = dd_save_to_csv($data, $output, $options, $contents, $roles);
+} else if ($format == TOOL_DOWNLOADDATA_FORMAT_CSV) {
+    $csv = tool_downloaddata_save_to_csv($data, $output, $options, $contents, $roles);
     $csv->download_file();
 }

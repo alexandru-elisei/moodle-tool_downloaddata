@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 // Custom column widths for the Excel file.
-$ADMIN_TOOL_DOWNLOADDATA_COLUMN_WIDTHS = array(
+$TOOL_DOWNLOADDATA_COLUMN_WIDTHS = array(
     'default' => 13,
     'category_path' => 30,
 	'email' => 30,
@@ -33,17 +33,17 @@ $ADMIN_TOOL_DOWNLOADDATA_COLUMN_WIDTHS = array(
 );
 
 // Output fields for courses in CSV format.
-$ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV = array(
+$TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV = array(
     'shortname',
     'fullname',
 	'category_path',
 );
 
 // Output fields for courses in Excel format.
-$ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS = $ADMIN_TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
+$TOOL_DOWNLOADDATA_COURSE_FIELDS_XLS = $TOOL_DOWNLOADDATA_COURSE_FIELDS_CSV;
 
 // Output fields for users in CSV format.
-$ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV = array(
+$TOOL_DOWNLOADDATA_USER_FIELDS_CSV = array(
     'username',
     'firstname',
     'lastname',
@@ -52,16 +52,16 @@ $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV = array(
 );
 
 // Output fields for users in Excel format.
-$ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_XLS = $ADMIN_TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
+$TOOL_DOWNLOADDATA_USER_FIELDS_XLS = $TOOL_DOWNLOADDATA_USER_FIELDS_CSV;
 
 // Default worksheet names when not using separate worksheets.
-$ADMIN_TOOL_DOWNLOADATA_WORKSHEET_NAMES = array(
+$TOOL_DOWNLOADDATA_WORKSHEET_NAMES = array(
     'users' => 'users',
     'courses' => 'courses',
 );
 
 // Overwrite values for course fields.
-$ADMIN_TOOL_DOWNLOADDATA_COURSE_OVERWRITES = array();
+$TOOL_DOWNLOADDATA_COURSE_OVERWRITES = array();
 
 // Overwrite values for user fields.
-$ADMIN_TOOL_DOWNLOADDATA_USER_OVERWRITES = array();
+$TOOL_DOWNLOADDATA_USER_OVERWRITES = array();
