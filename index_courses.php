@@ -23,19 +23,17 @@
  */
 
 require(__DIR__ . '/../../../config.php');
-require_once($CFG->libdir.'/adminlib.php');
-require_once($CFG->libdir.'/csvlib.class.php');
-require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once(__DIR__ . '/locallib.php');
-require_once(__DIR__ . '/courses_form.php');
 
 core_php_time_limit::raise(60*60); // 1 hour should be enough
 raise_memory_limit(MEMORY_HUGE);
 
 require_login();
 admin_externalpage_setup('tooldownloaddata_courses');
-require_capability('moodle/course:create', context_system::instance());
 
 if (empty($options)) {
     $mform1 = new tool_downloaddata_courses_form();
@@ -47,7 +45,6 @@ if (empty($options)) {
         $options['data'] = TOOL_DOWNLOADDATA_DATA_COURSES;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = array();
-        $options['useseparatesheets'] = false;
         $options['useoverwrites'] = ($formdata->useoverwrites == 'true');
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;

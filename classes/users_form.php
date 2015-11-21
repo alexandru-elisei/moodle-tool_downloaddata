@@ -84,13 +84,6 @@ class tool_downloaddata_users_form extends moodleform {
         $mform->addHelpButton('useoverwrites', 'useoverwrites', 'tool_downloaddata');
         $mform->setDefault('useoverwrites', 'false');
 
-        $useseparatesheets = array('true' => 'Yes', 'false' => 'No');
-        $mform->addElement('select', 'useseparatesheets', 
-                           get_string('useseparatesheets', 'tool_downloaddata'), $useseparatesheets);
-        $mform->setDefault('useseparatesheets', 'true');
-        $mform->addHelpButton('useseparatesheets', 'useseparatesheets', 'tool_downloaddata');
-        $mform->disabledIf('useseparatesheets', 'format', 'noteq', TOOL_DOWNLOADDATA_FORMAT_XLS);
-
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
     }
 }

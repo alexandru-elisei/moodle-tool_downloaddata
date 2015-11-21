@@ -39,5 +39,3 @@ $string['sortbycategorypath'] = 'Sort by category path';
 $string['sortbycategorypath_help'] = 'Sort courses in alphabetic order by category path. Useful if using different paths similar to "Year 1 / Semester 1", "Year 1 / Semester 2" and so on.';
 $string['useoverwrites'] = 'Overwrite fields';
 $string['useoverwrites_help'] = 'This allows specific fields to be overwritten. The fields and their values are located in config.php. If the field is not already part of the data, it will be created.';
-$string['useseparatesheets'] = 'Use separate worksheets';
-$string['useseparatesheets_help'] = 'Group users by their roles and print them on separate worksheets.';

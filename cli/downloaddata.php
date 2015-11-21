@@ -38,7 +38,6 @@ list($options, $unrecognized) = cli_get_params(array(
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
     'roles' => 'all',
-    'useseparatesheets' => true,
     'useoverwrites' => false,
     'sortbycategorypath' => true
 ),
@@ -63,7 +62,6 @@ Options:
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
 -r, --roles                Specific roles for users (comma separated) or all roles
 -s, --sortbycategorypath   Sort courses by category path alphabetically: true (default) or false
-    --useseparatesheets    Use separate worksheets for roles: true (default) or false
     --useoverwrites        Overwrite fields with data from locallib: true or false (default)
 
 Example:
@@ -118,8 +116,6 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
     die();
 }
 
-$options['useseparatesheets'] = ($options['useseparatesheets'] === true ||
-                                 core_text::strtolower($options['useseparatesheets']) == 'true');
 $options['useoverwrites'] = ($options['useoverwrites'] === true ||
                              core_text::strtolower($options['useoverwrites']) == 'true');
 $options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||

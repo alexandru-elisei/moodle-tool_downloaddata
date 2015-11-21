@@ -95,28 +95,14 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
             }
             $row++;
         }
-    } else if ($data == TOOL_DOWNLOADDATA_DATA_USERS) {
-        $worksheets = array();
-        // Current row for each worksheet.
-        $worksheetrow = array();
-        $lastcolumnindex = array();
-        if ($options['useseparatesheets']) {
-            foreach ($roles as $key => $role) {
-                $sheetname = $role;
-                $worksheets[] = $sheetname;
-                $workbook->$sheetname = $workbook->add_worksheet($sheetname);
-                $worksheetrow[$sheetname] = 1;
-                $lastcolumnindex[$sheetname] = 0;
-            }
-        } else {
-            $sheetname = tool_downloaddata_config::$worksheetnames['users'];
-            $worksheets[] = $sheetname;
-            $workbook->$sheetname = $workbook->add_worksheet($sheetname);
-            $worksheetrow[$sheetname] = 1;
-            $lastcolumnindex[$sheetname] = 0;
-        }
 
+    } else if ($data == TOOL_DOWNLOADDATA_DATA_USERS) {
+        $sheetname = tool_downloaddata_config::$worksheetnames['users'];
+        $workbook->$sheetname = $workbook->add_worksheet($sheetname);
 		$userfields = tool_downloaddata_config::$userfields;
+
+        $row = 1;
+        $maxcolumncount = 0;
 		if ($options['useoverwrites']) {
 			foreach (tool_downloaddata_config::$useroverwrites as $field => $value) {
 				if (!array_search($field, $userfields)) {
@@ -128,81 +114,42 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
         foreach ($contents as $key => $user) {
             // Print user info only if their role was requested.
 			if (!empty($user->roles)) {
-                // Print all users on one worksheet.
-                if (!$options['useseparatesheets']) {
-                    $sheetname = reset($worksheets);
-                    $column = 0;
-                    foreach ($userfields as $key => $field) {
-                        $workbook->$sheetname->write($worksheetrow[$sheetname], $column, $user->$field);
+                $column = 0;
+                foreach ($userfields as $key => $field) {
+                    $workbook->$sheetname->write($row, $column, $user->$field);
+                    $column++;
+                }
+
+                foreach ($user->roles as $key => $rolearray) {
+                    foreach ($rolearray as $role => $course) {
+                        $workbook->$sheetname->write($row, $column, $course);
+                        $column++;
+                        $workbook->$sheetname->write($row, $column, $role);
                         $column++;
                     }
+                }
 
-                    // Saving course and role fields
-                    foreach ($user->roles as $key => $rolearray) {
-                        foreach ($rolearray as $role => $course) {
-                            $workbook->$sheetname->write($worksheetrow[$sheetname], $column, $course);
-                            $column++;
-                            $workbook->$sheetname->write($worksheetrow[$sheetname], $column, $role);
-                            $column++;
-                        }
-                    }
-
-                    $worksheetrow[$sheetname]++;
-                    if ($lastcolumnindex[$sheetname] < $column-1) {
-                        $lastcolumnindex[$sheetname] = $column-1;
-                    }
-                } else {
-                    // Use separate worksheets for each role.
-                    foreach ($roles as $key => $role) {
-                        $sheetname = $role;
-                        $column = 0;
-                        $hasrole = false;
-                        foreach ($user->roles as $key => $rolearray) {
-                            if (isset($rolearray[$role])) {
-                                $hasrole = true;
-                                break;
-                            }
-                        }
-                        if ($hasrole) {
-                            foreach ($userfields as $key => $field) {
-                                $workbook->$role->write($worksheetrow[$sheetname], $column, $user->$field);
-                                $column++;
-                            }
-                            foreach ($user->roles as $key => $rolearray) {
-                                foreach ($rolearray as $r => $c) {
-                                    $workbook->$sheetname->write($worksheetrow[$sheetname], $column, $c);
-                                    $column++;
-                                    $workbook->$sheetname->write($worksheetrow[$sheetname], $column, $r);
-                                    $column++;
-                                }
-                            }
-                            $worksheetrow[$sheetname]++;
-                            if ($lastcolumnindex[$sheetname] < $column - 1) {
-                                $lastcolumnindex[$sheetname] = $column - 1;
-                            }
-                        }
-                    }
+                $row++;
+                if ($maxcolumncount < $column) {
+                    $maxcolumncount = $column;
                 }
             }
         }
 
-        // Getting column names for each worksheet.
-        foreach ($worksheets as $key => $worksheet) {
-            $columns = $userfields;
-            $columnindex = count($columns) - 1;
-            if ($lastcolumnindex[$worksheet] > $columnindex) {
-                $rolenumber = 1;
-                for ($i = $columnindex + 1; $i <= $lastcolumnindex[$worksheet]; $i += 2) {
-                    $coursecolumn = 'course' . $rolenumber;
-                    $columns[] = $coursecolumn;
-                    $rolecolumn = 'role' . $rolenumber;
-                    $columns[] = $rolecolumn;
-                    $rolenumber++;
-                }
+        // Creating the role1, role2, etc. and associated course fields.
+        $columncount = count($userfields);
+        if ($maxcolumncount > $columncount) {
+            $rolenumber = 1;
+            for ($i = $columncount; $i < $maxcolumncount; $i += 2) {
+                $coursecolumn = 'course' . $rolenumber;
+                $columns[] = $coursecolumn;
+                $rolecolumn = 'role' . $rolenumber;
+                $columns[] = $rolecolumn;
+                $rolenumber++;
             }
-            tool_downloaddata_print_column_names($columns, $workbook->$worksheet);
-            tool_downloaddata_set_column_widths($columns, $workbook->$worksheet);
         }
+        tool_downloaddata_print_column_names($columns, $workbook->$sheetname);
+        tool_downloaddata_set_column_widths($columns, $workbook->$sheetname);
     }
 
     return $workbook;
@@ -348,7 +295,7 @@ function tool_downloaddata_get_users($roles, $options = null) {
     global $DB;
     global $TOOL_DOWNLOADDATA_ROLESCACHE;
 
-	// Error if roles haven't been prepared beforehand.
+	// Exception if roles haven't been prepared beforehand.
 	if (empty($TOOL_DOWNLOADDATA_ROLESCACHE)) {
         throw new coding_exception("Cannot proceed, roles haven't been resolved.");
 	}
@@ -362,7 +309,7 @@ function tool_downloaddata_get_users($roles, $options = null) {
 
     $courses = tool_downloaddata_get_courses($options);
     $users = array();
-	// Finding users with specified roles assigned to the courses.
+	// Finding the users assigned to the course with the specified roles.
     foreach ($courses as $key => $course) {
 		$coursecontext = context_course::instance($course->id);
 		foreach ($roles as $key => $role) {
@@ -385,6 +332,7 @@ function tool_downloaddata_get_users($roles, $options = null) {
 			}
 		}
 	}
+
     return $users;
 }
 
