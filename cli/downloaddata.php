@@ -39,7 +39,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'encoding' => 'UTF-8',
     'roles' => 'all',
     'useoverwrites' => false,
-    'sortbycategorypath' => true
+    'sortbycategorypath' => false
 ),
 array(
     'h' => 'help',
@@ -71,12 +71,11 @@ Example:
 
 if ($unrecognized) {
     $unrecognized = implode("\n  ", $unrecognized);
-    fputs(STDERR, get_string('cliunknowoption', 'admin', $unrecognized) . "\n");
-    die();
+    cli_error(get_string('cliunknowoption', 'admin', $unrecognized));
 }
 
 if ($options['help']) {
-    fputs(STDERR, $help);
+    echo $help;
     die();
 }
 
@@ -85,35 +84,27 @@ $dataoptions = array(
     'users' => TOOL_DOWNLOADDATA_DATA_USERS
 );
 if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
-    fputs(STDERR, get_string('invaliddata', 'tool_downloaddata'). "\n");
-    fputs(STDERR, $help);
-    die();
+    throw new coding_exception(get_string('invaliddata', 'tool_downloaddata'));
 }
-$data = $dataoptions[$options['data']];
+$options['data'] = $dataoptions[$options['data']];
 
 $formats = array(
     'csv' => TOOL_DOWNLOADDATA_FORMAT_CSV,
     'xls' => TOOL_DOWNLOADDATA_FORMAT_XLS
 );
 if (!isset($options['format']) || !isset($formats[$options['format']])) {
-    fputs(STDERR, get_string('invalidformat', 'tool_downloaddata'));
-    fputs(STDERR, $help);
-    die();
+    throw new coding_exception(get_string('invalidformat', 'tool_downloaddata'));
 }
-$format = $formats[$options['format']];
+$options['format'] = $formats[$options['format']];
 
 $encodings = core_text::get_encodings();
 if (!isset($encodings[$options['encoding']])) {
-    fputs(STDERR, get_string('invalidencoding', 'tool_downloaddata'));
-    fputs(STDERR, $help);
-    die();
+    throw new coding_exception(get_string('invalidencoding', 'tool_downloaddata'));
 }
 
 $delimiters = csv_import_reader::get_delimiter_list();
 if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) {
-    fputs(STDERR, get_string('invaliddelimiter', 'tool_downloaddata'));
-    fputs(STDERR, $help);
-    die();
+    throw new coding_exception(get_string('invaliddelimiter', 'tool_downloaddata'));
 }
 
 $options['useoverwrites'] = ($options['useoverwrites'] === true ||
@@ -124,18 +115,23 @@ $options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
 // Emulate admin session.
 cron_setup_user();
 
+$processor = new tool_downloaddata_processor($options);
+$output = $processor->execute();
+
+var_dump($output);
+
+/*
 $contents = null;
 $roles = null;
 if ($data == TOOL_DOWNLOADDATA_DATA_COURSES) {
     $contents = tool_downloaddata_get_courses($options);
     if (empty($contents)) {
-        fputs(STDERR, get_string('emptycontents', 'tool_downloaddata') . "\n");
-        die();
+        throw new coding_exception(get_string('emptycontents', 'tool_downloaddata'));
     }
 } else if ($data == TOOL_DOWNLOADDATA_DATA_USERS) {
     $roles = tool_downloaddata_resolve_roles($options['roles']);
     if ($roles == TOOL_DOWNLOADDATA_INVALID_ROLES) {
-        fputs(STDERR, get_string('invalidroles', 'tool_downloaddata') . "\n");
+        fputs(STDERR, get_string('invalidrole', 'tool_downloaddata') . "\n");
         die();
     }
     $contents = tool_downloaddata_get_users($roles, $options);
@@ -149,3 +145,4 @@ if ($format == TOOL_DOWNLOADDATA_FORMAT_XLS) {
     $csv = tool_downloaddata_save_to_csv($data, $output, $options, $contents, $roles);
     $csv->download_file();
 }
+ */
