@@ -77,8 +77,8 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
         $workbook->$worksheet = $workbook->add_worksheet($worksheet);
 
         $columns = tool_downloaddata_config::$coursefields;
-		if ($options['useoverwrites']) {
-			foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
+		if ($options['useoverrides']) {
+			foreach (tool_downloaddata_config::$courseoverrides as $field => $value) {
 				if (!array_search($field, $columns)) {
 					$columns[] = $field;
 				}
@@ -103,8 +103,8 @@ function tool_downloaddata_save_to_excel($data, $output, $options, $contents, $r
 
         $row = 1;
         $maxcolumncount = 0;
-		if ($options['useoverwrites']) {
-			foreach (tool_downloaddata_config::$useroverwrites as $field => $value) {
+		if ($options['useoverrides']) {
+			foreach (tool_downloaddata_config::$useroverrides as $field => $value) {
 				if (!array_search($field, $userfields)) {
 					$userfields[] = $field;
 				}
@@ -173,8 +173,8 @@ function tool_downloaddata_save_to_csv($data, $output, $options, $contents, $rol
     if ($data == TOOL_DOWNLOADDATA_DATA_COURSES) {
         // Saving field names
         $fields = tool_downloaddata_config::$coursefields;
-        if ($options['useoverwrites']) {
-            foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
+        if ($options['useoverrides']) {
+            foreach (tool_downloaddata_config::$courseoverrides as $field => $value) {
 				if (!array_search($field, $fields)) {
 					$fields[] = $field;
 				}
@@ -201,8 +201,8 @@ function tool_downloaddata_save_to_csv($data, $output, $options, $contents, $rol
 
         // Saving field names
         $userfields = tool_downloaddata_config::$userfields;
-		if ($options['useoverwrites']) {
-			foreach (tool_downloaddata_config::$useroverwrites as $field => $value) {
+		if ($options['useoverrides']) {
+			foreach (tool_downloaddata_config::$useroverrides as $field => $value) {
 				if (!array_search($field, $userfields)) {
 					$userfields[] = $field;
 				}
@@ -268,9 +268,9 @@ function tool_downloaddata_get_courses($options = null) {
         $course->category_path = tool_downloaddata_resolve_category_path($course->category);
         // Formating startdate to the ISO8601 format.
         $course->startdate = userdate($course->startdate, '%Y-%m-%d');
-        // Adding overwrite fields and values.
-        if ($options['useoverwrites']) {
-            foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
+        // Adding override fields and values.
+        if ($options['useoverrides']) {
+            foreach (tool_downloaddata_config::$courseoverrides as $field => $value) {
                 $course->$field = $value;
             }
         }
@@ -325,9 +325,9 @@ function tool_downloaddata_get_users($roles, $options = null) {
     }
 
 	// Overwriting fields.
-	if (isset($options['useoverwrites']) && $options['useoverwrites']) {
+	if (isset($options['useoverrides']) && $options['useoverrides']) {
 		foreach ($users as $username => $user) {
-			foreach (tool_downloaddata_config::$useroverwrites as $field => $value) {
+			foreach (tool_downloaddata_config::$useroverrides as $field => $value) {
 				$user->$field = $value;
 			}
 		}

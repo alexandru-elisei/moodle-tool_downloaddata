@@ -37,7 +37,6 @@ class tool_downloaddata_users_form extends moodleform {
 
     /**
      * The standard form definiton.
-     * @return void
      */
     public function definition () {
         $mform = $this->_form;
@@ -78,11 +77,11 @@ class tool_downloaddata_users_form extends moodleform {
         $mform->setDefault('delimiter_name', 'comma');
         $mform->disabledIf('delimiter_name', 'format', 'noteq', TOOL_DOWNLOADDATA_FORMAT_CSV);
 
-        $useoverwrites = array('true' => 'Yes', 'false' => 'No');
-        $mform->addElement('select', 'useoverwrites', 
-                           get_string('useoverwrites', 'tool_downloaddata'), $useoverwrites);
-        $mform->addHelpButton('useoverwrites', 'useoverwrites', 'tool_downloaddata');
-        $mform->setDefault('useoverwrites', 'false');
+        $useoverrides = array('true' => 'Yes', 'false' => 'No');
+        $mform->addElement('select', 'useoverrides', 
+                           get_string('useoverrides', 'tool_downloaddata'), $useoverrides);
+        $mform->addHelpButton('useoverrides', 'useoverrides', 'tool_downloaddata');
+        $mform->setDefault('useoverrides', 'false');
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
     }

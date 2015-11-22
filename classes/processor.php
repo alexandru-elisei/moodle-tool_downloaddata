@@ -57,46 +57,64 @@ class tool_downloaddata_processor {
      */
     const FORMAT_XLS = 1;
 
-    /** @var int download courses or users. */
+    /** @var int Download courses or users. */
     protected $coursesorusers;
 
-    /** @var stdClass[] content to download. */
+    /** @var stdClass[] Content to download. */
     protected $contents;
 
-    /** @var int download data format. */
+    /** @var int Download data format. */
     protected $format = self::FORMAT_CSV;
 
-    /** @var int delimiter for csv format. */
+    /** @var int Delimiter for csv format. */
     protected $delimiter = 'comma';
 
-    /** @var string encoding. */
+    /** @var string Encoding. */
     protected $encoding = 'UTF-8';
 
-    /** @var bool whether the process has been started or not. */
+    /** @var bool Whether the process has been started or not. */
     protected $processstarted = false;
 
-    /** @var string download only users that have these roles. */
-    protected $roles = 'all';
+    /** @var string Download only users that have these roles. */
+    protected $requestedroles = 'all';
 
-    /** @var string[] resolved roles. */
+    /** @var string[] Fields to download. */
+    protected $fields;
+
+    /** @var string[] Fields to be overridden. */
+    protected $overrides;
+
+    /** @var string[] Resolved roles. */
     protected $resolvedroles = array();
 
-    /** var bool overwrite fields. */
-    protected $useoverwrites = false;
+    /** var bool Whether fields should be overridden or not. */
+    protected $useoverrides = false;
 
-    /** var bool sort courses by category path. */
+    /** var bool Sort courses by category path. */
     protected $sortbycategorypath = false;
 
-    /** @var string[] cache for roles. */
-    protected $rolescache = array(); 
+    /** @var string[] Cache for roles. */
+    protected $rolescache = null; 
 
-    public function __construct($options) {
+    /** @var csv_export_writer | MoodleExcelWorkbook File object with the requested data. */
+    protected $fileobject = null;
 
+    /**
+     * Class constructor.
+     *
+     * @throws coding_exception.
+     * @param string[] $options Download options.
+     * @param string[] $fields The fields that will be downloaded.
+     * @param string[] $overrides Fields to be overridden.
+     */
+    public function __construct($options, $fields, $overrides = null) {
         if (!isset($options['data']) ||
                 !in_array($options['data'], array(self::DATA_COURSES, self::DATA_USERS))) {
             throw new coding_exception(get_string('invaliddata', 'tool_downloaddata'));
         }
         $this->coursesorusers = (int) $options['data'];
+
+        $this->fields = $fields;
 
         if (isset($options['format'])) {
             if (!in_array($options['format'], array(self::FORMAT_CSV, self::FORMAT_XLS))) {
@@ -122,11 +140,15 @@ class tool_downloaddata_processor {
         }
 
         if (isset($options['roles'])) {
-            $this->roles = $options['roles'];
+            $this->requestedroles = $options['roles'];
         }
 
-        if (isset($options['useoverwrites'])) {
-            $this->useoverwrites = $options['useoverwrites'];
+        if (isset($options['useoverrides']) && $options['useoverrides'] == true) {
+            $this->useoverrides = $options['useoverrides'];
+            if (empty($overrides)) {
+                throw new coding_exception(get_string('emptyoverrides', 'tool_downloaddata'));
+            }
+            $this->overrides = $overrides;
         }
 
         if (isset($options['sortbycategorypath'])) {
@@ -134,7 +156,10 @@ class tool_downloaddata_processor {
         }
     }
 
-    public function execute() {
+    /**
+     * Prepare the file to be downloaded.
+     */
+    public function prepare() {
         if ($this->processstarted) {
             throw new coding_exception(get_string('processstarted', 'tool_downloaddata'));
         }
@@ -143,18 +168,54 @@ class tool_downloaddata_processor {
         if ($this->coursesorusers === self::DATA_COURSES) {
             $this->contents = $this->get_courses();
             if ($this->format === self::FORMAT_CSV) {
-                $csv = $this->save_courses_to_csv();
-                return $csv->download_file();
+                $this->fileobject = $this->save_courses_to_csv();
+            } else if ($this->format === self::FORMAT_XLS) {
+                $this->fileobject = $this->save_courses_to_xls();
+            }
+        } else if ($this->coursesorusers === self::DATA_USERS) {
+            $this->resolvedroles = $this->resolve_roles();
+            $this->contents = $this->get_users();
+            if ($this->format === self::FORMAT_CSV) {
+                $this->fileobject = $this->save_users_to_csv();
+            } else if ($this->format === self::FORMAT_XLS) {
+                $this->fileobject = $this->save_users_to_xls();
             }
         }
     }
+     
+    /**
+     * Download the file object.
+     *
+     * @throws coding_exception.
+     */
+    public function download() {
+        if (is_null($this->fileobject)) {
+            throw new coding_exception(get_string('filenotprepared', 'tool_downloaddata'));
+        }
+        if ($this->format === self::FORMAT_CSV) {
+            $this->fileobject->download_file();
+        } else if ($this->format === self::FORMAT_XLS) {
+            $this->fileobject->close();
+        }
+    }
 
+    /**
+     * Return the file object with the requested data.
+     *
+     * @return csv_export_writer | MoodleExcelWorkbook The file object.
+     */
+    public function get_file_object() {
+        if (is_null($this->fileobject)) {
+            throw new coding_exception(get_string('filenotprepared', 'tool_downloaddata'));
+        }
+        return $this->fileobject;
+    }
 
     /**
      * Get the courses to be saved to a file.
      *
-     * @param string[] $options function options.
-     * @return stdClass[] the courses.
+     * @param string[] $options Function options.
+     * @return stdClass[] The courses.
      */
     protected function get_courses() {
         global $DB;
@@ -171,9 +232,9 @@ class tool_downloaddata_processor {
             $course->category_path = $this->resolve_category_path($course->category);
             // Formating startdate to the ISO8601 format.
             $course->startdate = userdate($course->startdate, '%Y-%m-%d');
-            // Adding overwrite fields and values.
-            if ($this->useoverwrites) {
-                foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
+            // Adding override fields and values.
+            if ($this->useoverrides) {
+                foreach ($this->overrides as $field => $value) {
                     $course->$field = $value;
                 }
             }
@@ -181,13 +242,13 @@ class tool_downloaddata_processor {
 
         if ($this->sortbycategorypath) {
             usort($courses, function($a, $b) {
-                if ($a->category_path > $b->category_path) {
-                    return 1;
-                } else if ($a->category_path < $b->category_path) {
-                    return -1;
-                } else {
-                    return 0;
-                }
+                                if ($a->category_path > $b->category_path) {
+                                    return 1;
+                                } else if ($a->category_path < $b->category_path) {
+                                    return -1;
+                                } else {
+                                    return 0;
+                                }
             });
         }
 
@@ -197,8 +258,8 @@ class tool_downloaddata_processor {
     /**
      * Resolve category hierarchy.
      *
-     * @param int $parentid the parent id.
-     * @return string the category hierarchy.
+     * @param int $parentid The parent id.
+     * @return string The category hierarchy.
      */
     protected function resolve_category_path($parentid) {
         global $DB;
@@ -225,7 +286,7 @@ class tool_downloaddata_processor {
     /**
      * Save requested courses to a comma separated values (CSV) file.
      *
-     * @return class csv_export_writer.
+     * @return csv_export_writer The csv file object.
      */
     function save_courses_to_csv() {
         global $DB;
@@ -234,9 +295,9 @@ class tool_downloaddata_processor {
         $csv->set_filename('courses');
         
         // Saving field names
-        $fields = tool_downloaddata_config::$coursefields;
-        if ($this->useoverwrites) {
-            foreach (tool_downloaddata_config::$courseoverwrites as $field => $value) {
+        $fields = $this->fields;
+        if ($this->useoverrides) {
+            foreach ($this->overrides as $field => $value) {
                 if (!array_search($field, $fields)) {
                     $fields[] = $field;
                 }
@@ -258,7 +319,7 @@ class tool_downloaddata_processor {
     /**
      * Save requested users to a comma separated values (CSV) file.
      *
-     * @return class csv_export_writer.
+     * @return csv_export_writer The csv file object.
      */
     function save_users_to_csv() {
         global $DB;
@@ -275,9 +336,9 @@ class tool_downloaddata_processor {
         }
 
         // Saving field names
-        $userfields = tool_downloaddata_config::$userfields;
-        if ($this->useoverwrites) {
-            foreach (tool_downloaddata_config::$useroverwrites as $field => $value) {
+        $userfields = $this->fields;
+        if ($this->useoverrides) {
+            foreach ($this->overrides as $field => $value) {
                 if (!array_search($field, $userfields)) {
                     $userfields[] = $field;
                 }
@@ -320,4 +381,225 @@ class tool_downloaddata_processor {
 
         return $csv;
     }
+
+    /**
+     * Save requested data to a file in the Excel format. Right now, Moodle only
+     * supports Excel2007 format.
+     *
+     * @return MoodleExcelWorkbook The file object.
+     */
+    protected function save_courses_to_xls() {
+        global $DB;
+
+        $workbook = new MoodleExcelWorkbook('courses');
+        $worksheet = tool_downloaddata_config::$worksheetnames['courses'];
+        $workbook->$worksheet = $workbook->add_worksheet($worksheet);
+
+        $columns = $this->fields;
+        if ($this->useoverrides) {
+            foreach ($this->overrides as $field => $value) {
+                if (!array_search($field, $columns)) {
+                    $columns[] = $field;
+                }
+            }
+        }
+        $this->print_column_names($columns, $workbook->$worksheet);
+        $this->set_column_widths($columns, $workbook->$worksheet);
+
+        $row = 1;
+        // Saving courses
+        foreach ($this->contents as $key => $course) {
+            foreach ($columns as $column => $field) {
+                $workbook->$worksheet->write($row, $column, $course->$field);
+            }
+            $row++;
+        }
+
+        return $workbook;
+    }
+
+    /**
+     * Get all the users to be saved to file.
+     *
+     * @throws coding_exception.
+     * @return stdClass[] The users.
+     */
+    protected function get_users() {
+        global $DB;
+
+        // Constructing the requested user fields.
+        $userfields = $this->fields;
+        foreach ($userfields as $key => $field) {
+            $field = 'u.' . $field;
+        }
+        $userfields = implode(',', $userfields);
+
+        $courses = $this->get_courses();
+        $users = array();
+        // Finding the users assigned to the course with the specified roles.
+        foreach ($courses as $key => $course) {
+            $coursecontext = context_course::instance($course->id);
+            foreach ($this->resolvedroles as $key => $role) {
+                $usersassigned = get_role_users($this->rolescache[$role], $coursecontext, false, $userfields);
+                foreach ($usersassigned as $username => $user) {
+                    if (!isset($users[$username])) {
+                        $users[$username] = $user;
+                        $users[$username]->roles = array();
+                    }
+                    $users[$username]->roles[] = array($role => $course->shortname);
+                }
+            }
+        }
+
+        // Overridding fields.
+        if ($this->useoverrides) {
+            foreach ($users as $username => $user) {
+                foreach ($this->overrides as $field => $value) {
+                    $user->$field = $value;
+                }
+            }
+        }
+
+        return $users;
+    }
+
+    /**
+     * Validate and process specified user roles.
+     *
+     * @throws coding_exception.
+     * @param string $roles Comma separated list of roles.
+     * @return string[] $roles Numerically indexed array of roles.
+     */
+    protected function resolve_roles() {
+        global $TOOL_DOWNLOADDATA_ROLESCACHE;
+
+        $this->rolescache = array();
+        $allroles = get_all_roles();
+        // Building roles cache.
+        foreach ($allroles as $key => $role) {
+            $this->rolescache[$role->shortname] = $role->id;
+        }
+
+        // Returning all roles.
+        if ($this->requestedroles == 'all') {
+            $ret = array();
+            foreach ($allroles as $key => $role) {
+                $isguest = ($role->shortname == 'guest');
+                $isfrontpage = ($role->shortname == 'frontpage');
+                $isadmin = ($role->shortname == 'admin');
+                if (!$isguest && !$isfrontpage && !$isadmin) {
+                    $ret[] = $role->shortname;
+                }
+            }
+        } else {
+            $ret = explode(',', $this->requestedroles);
+            // Checking for invalid roles
+            foreach ($ret as $key => $role) {
+                if (!isset($this->rolescache[$role])) {
+                    throw new coding_exception(get_string('invalidrole', 'tool_downloaddata'));
+                }
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * Save users in the Excel 2007 (xls) format.
+     *
+     * @return MoodleExcelWorkbook
+     */
+    public function save_users_to_xls() {
+        global $DB;
+
+        $workbook = new MoodleExcelWorkbook('users');
+        $sheetname = tool_downloaddata_config::$worksheetnames['users'];
+        $workbook->$sheetname = $workbook->add_worksheet($sheetname);
+
+        $userfields = $this->fields;
+        $row = 1;
+        $maxcolumncount = 0;
+        if ($this->useoverrides) {
+            foreach ($this->overrides as $field => $value) {
+                if (!array_search($field, $userfields)) {
+                    $userfields[] = $field;
+                }
+            }
+        }
+
+        foreach ($this->contents as $key => $user) {
+            // Print user info only if their role was requested.
+            if (!empty($user->roles)) {
+                $column = 0;
+                foreach ($userfields as $key => $field) {
+                    $workbook->$sheetname->write($row, $column, $user->$field);
+                    $column++;
+                }
+
+                foreach ($user->roles as $key => $rolearray) {
+                    foreach ($rolearray as $role => $course) {
+                        $workbook->$sheetname->write($row, $column, $course);
+                        $column++;
+                        $workbook->$sheetname->write($row, $column, $role);
+                        $column++;
+                    }
+                }
+
+                $row++;
+                if ($maxcolumncount < $column) {
+                    $maxcolumncount = $column;
+                }
+            }
+        }
+
+        // Creating the role1, role2, etc. and associated course1, course2, etc. fields.
+        $columncount = count($userfields);
+        $columns = $userfields;
+        fputs(STDERR, count($columns));
+        if ($maxcolumncount > $columncount) {
+            $rolenumber = 1;
+            for ($i = $columncount; $i < $maxcolumncount; $i += 2) {
+                $coursecolumn = 'course' . $rolenumber;
+                $columns[] = $coursecolumn;
+                $rolecolumn = 'role' . $rolenumber;
+                $columns[] = $rolecolumn;
+                $rolenumber++;
+            }
+        }
+        fputs(STDERR, count($columns));
+        $this->print_column_names($columns, $workbook->$sheetname);
+        $this->set_column_widths($columns, $workbook->$sheetname);
+
+        return $workbook;
+    }
+
+    /**
+     * Print the field names for Excel files.
+     *
+     * @param string[] $columns Column names.
+     * @param MoodleExcelWorksheet $worksheet The worksheet.
+     */
+    protected function print_column_names($columns, $worksheet) {
+        $column = 0;
+        foreach ($columns as $key => $name) {
+            $worksheet->write(0, $column, $name);
+            $column++;
+        }
+    }
+
+    /**
+     * Set file column widths for Excel files.
+     *
+     * @param string[] $columns Column names.
+     * @param MoodleExcelWorksheet $worksheet The worksheet.
+     */
+    protected function set_column_widths($columns, $worksheet) {
+        $lastcolumnindex = count($columns)-1;
+        $worksheet->set_column(0, $lastcolumnindex, tool_downloaddata_config::$columnwidths['default']);
+        foreach ($columns as $no => $name) {
+            if (isset(tool_downloaddata_config::$columnwidths[$name])) {
+                $worksheet->set_column($no, $no, tool_downloaddata_config::$columnwidths[$name]);
+            }
+        }
+    }
+
 }

@@ -61,7 +61,7 @@ class tool_downloaddata_config {
     );
 
     /**
-     * Default worksheet names when not using separate worksheets.
+     * Default worksheet names.
      */
     public static $worksheetnames = array(
         'users' => 'users',
@@ -69,14 +69,14 @@ class tool_downloaddata_config {
     );
 
     /**
-     * Overwrite values for course fields. Array of 'field' => 'overwrite value' 
+     * Override values for course fields. Array of 'field' => 'override value' 
      * elements.
      */
-    public static $courseoverwrites = array();
+    public static $courseoverrides = array();
 
     /**
-     * Overwrite values for user fields. Array of 'field' => 'overwrite value' 
+     * Override values for user fields. Array of 'field' => 'override value' 
      * elements.
      */
-    public static $useroverwrites = array();
+    public static $useroverrides = array();
 }

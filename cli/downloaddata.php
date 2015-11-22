@@ -38,7 +38,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
     'roles' => 'all',
-    'useoverwrites' => false,
+    'useoverrides' => false,
     'sortbycategorypath' => false
 ),
 array(
@@ -62,7 +62,7 @@ Options:
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
 -r, --roles                Specific roles for users (comma separated) or all roles
 -s, --sortbycategorypath   Sort courses by category path alphabetically: true (default) or false
-    --useoverwrites        Overwrite fields with data from locallib: true or false (default)
+    --useoverrides        Override fields with data from locallib: true or false (default)
 
 Example:
 \$php downloaddata.php --data=users --roles=all --format=xls > output.xls
@@ -107,18 +107,31 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
     throw new coding_exception(get_string('invaliddelimiter', 'tool_downloaddata'));
 }
 
-$options['useoverwrites'] = ($options['useoverwrites'] === true ||
-                             core_text::strtolower($options['useoverwrites']) == 'true');
+$options['useoverrides'] = ($options['useoverrides'] === true ||
+                             core_text::strtolower($options['useoverrides']) == 'true');
 $options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
                                   core_text::strtolower($options['sortbycategorypath']) == 'true');
 
 // Emulate admin session.
 cron_setup_user();
 
-$processor = new tool_downloaddata_processor($options);
-$output = $processor->execute();
+if ($options['data'] == tool_downloaddata_processor::DATA_USERS) {
+    $fields = tool_downloaddata_config::$userfields;
+    $overrides = tool_downloaddata_config::$useroverrides;
+} else if ($options['data'] == tool_downloaddata_processor::DATA_COURSES) {
+    $fields = tool_downloaddata_config::$coursefields;
+    $overrides = tool_downloaddata_config::$courseoverrides;
+}
 
-var_dump($output);
+$processor = new tool_downloaddata_processor($options, $fields, $overrides);
+$processor->prepare();
+$processor->download();
+/*
+$csv = $processor->get_file_object();
+$csv->print_csv_data(true);
+ */
+
+//var_dump($output);
 
 /*
 $contents = null;

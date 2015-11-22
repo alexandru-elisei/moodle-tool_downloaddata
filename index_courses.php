@@ -45,7 +45,7 @@ if (empty($options)) {
         $options['data'] = TOOL_DOWNLOADDATA_DATA_COURSES;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = array();
-        $options['useoverwrites'] = ($formdata->useoverwrites == 'true');
+        $options['useoverrides'] = ($formdata->useoverrides == 'true');
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;
 
