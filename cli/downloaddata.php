@@ -32,21 +32,25 @@ require_once(__DIR__ . '/../locallib.php');
 
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(
-    'help' => false,
-    'format' => 'csv',
     'data' => '',
     'delimiter' => 'comma',
     'encoding' => 'UTF-8',
+    'fields' => '',
+    'format' => 'csv',
+    'help' => false,
     'roles' => 'all',
+    'overrides' => '',
+    'sortbycategorypath' => false,
     'useoverrides' => false,
-    'sortbycategorypath' => false
 ),
 array(
-    'h' => 'help',
-    'f' => 'format',
     'd' => 'data',
     'l' => 'delimiter',
     'e' => 'encoding',
+    'i' => 'fields',
+    'f' => 'format',
+    'h' => 'help',
+    'o' => 'overrides',
     'r' => 'roles',
     's' => 'sortbycategorypath'
 ));
@@ -55,14 +59,16 @@ $help =
 "\nDownload Moodle data file.
 
 Options:
--h, --help                 Print out this help
--f, --format               Format: csv (default) or xls
 -d, --data                 Data to download: courses or users
 -l, --delimiter            CSV delimiter: colon, semicolon, tab, cfg, comma (default)
 -e, --encoding             CSV file encoding: utf8 (default), ... etc
+-i, --fields               Fields to print, comma separated. If absent, the fields in ../config.php are used
+-f, --format               Format: csv (default) or xls
+-h, --help                 Print out this help
 -r, --roles                Specific roles for users (comma separated) or all roles
+-o, --overrides            Override fields, comma separated, in the form field=value. Used in conjuction with useoverrides
 -s, --sortbycategorypath   Sort courses by category path alphabetically: true (default) or false
-    --useoverrides        Override fields with data from locallib: true or false (default)
+    --useoverrides         Override fields with data from locallib: true or false (default)
 
 Example:
 \$php downloaddata.php --data=users --roles=all --format=xls > output.xls
@@ -88,6 +94,13 @@ if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
 }
 $options['data'] = $dataoptions[$options['data']];
 
+if (!empty($options['fields'])) {
+    $fields = explode(',', $options['fields']);
+    foreach ($fields as $key => $field) {
+        $fields[$key] = trim($field);
+    }
+}
+
 $formats = array(
     'csv' => TOOL_DOWNLOADDATA_FORMAT_CSV,
     'xls' => TOOL_DOWNLOADDATA_FORMAT_XLS
@@ -107,8 +120,19 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
     throw new coding_exception(get_string('invaliddelimiter', 'tool_downloaddata'));
 }
 
+$overrides = array();
 $options['useoverrides'] = ($options['useoverrides'] === true ||
                              core_text::strtolower($options['useoverrides']) == 'true');
+if ($options['useoverrides']) {
+    if (!empty($options['overrides'])) {
+        $o = explode(',', $options['overrides']);
+        foreach ($o as $value) {
+            $override = explode('=', $value);
+            $overrides[trim($override[0])] = trim($override[1]);
+        }
+    }
+}
+
 $options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
                                   core_text::strtolower($options['sortbycategorypath']) == 'true');
 
@@ -116,19 +140,41 @@ $options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
 cron_setup_user();
 
 if ($options['data'] == tool_downloaddata_processor::DATA_USERS) {
-    $fields = tool_downloaddata_config::$userfields;
-    $overrides = tool_downloaddata_config::$useroverrides;
+    if (!isset($fields)) {
+        $fields = tool_downloaddata_config::$userfields;
+    }
+    if ($options['useoverrides'] && empty($overrides)) {
+        $overrides = tool_downloaddata_config::$useroverrides;
+    }
 } else if ($options['data'] == tool_downloaddata_processor::DATA_COURSES) {
-    $fields = tool_downloaddata_config::$coursefields;
-    $overrides = tool_downloaddata_config::$courseoverrides;
+    if (!isset($fields)) {
+        $fields = tool_downloaddata_config::$coursefields;
+    }
+    if ($options['useoverrides'] && empty($overrides)) {
+        $overrides = tool_downloaddata_config::$courseoverrides;
+    }
 }
+
+/*
+if (empty($overrides)) {
+    echo "overrides empty\n";
+}
+if ($options['useoverrides']) {
+    echo "useoverrides true\n";
+}
+ */
 
 $processor = new tool_downloaddata_processor($options, $fields, $overrides);
 $processor->prepare();
-$processor->download();
+//$processor->download();
 /*
 $csv = $processor->get_file_object();
 $csv->print_csv_data(true);
+ */
+/*
+$xls = $processor->get_file_object();
+$xls->send('test.xls');
+$xls->close();
  */
 
 //var_dump($output);
