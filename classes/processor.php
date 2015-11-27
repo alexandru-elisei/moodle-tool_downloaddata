@@ -24,6 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->libdir . '/moodlelib.php');
 require_once($CFG->libdir . '/excellib.class.php');
 require_once($CFG->libdir . '/coursecatlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
@@ -80,6 +81,26 @@ class tool_downloaddata_processor {
 
     /** @var string[] Fields to download. */
     protected $fields;
+
+    /** @var string[] Valid course fields. */
+    protected $validcoursefields = array( 'shortname', 'fullname', 'idnumber',
+        'category', 'category_idnumber', 'category_path', 'visible',
+        'startdate', 'summary', 'format', 'theme', 'lang', 'newsitems',
+        'showgrades', 'showreports', 'legacyfiles', 'maxbytes', 'groupmode',
+        'groupmodeforce', 'enablecompletion'
+    );
+
+    /** @var string[] Standard user fields. */
+    protected $standarduserfields = array('id', 'username', 'email', 'city',
+        'country', 'lang', 'timezone', 'mailformat', 'maildisplay',
+        'maildigest', 'htmleditor', 'autosubscribe', 'institution',
+        'department', 'idnumber', 'skype', 'msn', 'aim', 'yahoo', 'icq',
+        'phone1', 'phone2', 'address', 'url', 'description',
+        'descriptionformat', 'password', 'auth'
+    );
+
+    /** @var string[] User profile fields. */
+    protected $profilefields = array();
 
     /** @var string[] Fields to be overridden. */
     protected $overrides;
@@ -154,25 +175,49 @@ class tool_downloaddata_processor {
         if (isset($options['sortbycategorypath'])) {
             $this->sortbycategorypath = $options['sortbycategorypath'];
         }
+
     }
 
     /**
      * Prepare the file to be downloaded.
+     *
+     * @throws coding_exception.
      */
     public function prepare() {
+        global $DB;
+
         if ($this->processstarted) {
             throw new coding_exception(get_string('processstarted', 'tool_downloaddata'));
         }
         $this->processstarted = true;
 
         if ($this->coursesorusers === self::DATA_COURSES) {
+            $validationresult = $this->validate_course_fields();
+            if ($validationresult !== true) {
+                throw new coding_exception(get_string('invalidfield', 'tool_downloaddata') . ': ' . $validationresult);
+            }
+
             $this->contents = $this->get_courses();
             if ($this->format == self::FORMAT_CSV) {
                 $this->fileobject = $this->save_courses_to_csv();
             } else if ($this->format == self::FORMAT_XLS) {
                 $this->fileobject = $this->save_courses_to_xls();
             }
+
         } else if ($this->coursesorusers === self::DATA_USERS) {
+            $this->standarduserfields = array_merge($this->standarduserfields, get_all_user_name_fields());
+            // Getting profile fields.
+            if ($proffields = $DB->get_records('user_info_field')) {
+                foreach ($proffields as $key => $proffield) {
+                    $profilefieldname = 'profile_field_'.$proffield->shortname;
+                    $this->profilefields[] = $profilefieldname;
+                }
+            }
+            $validationresult  =$this->validate_user_fields();
+            if ($validationresult !== true) {
+                throw new coding_exception(get_string('invalidfield', 'tool_downloaddata') . ': ' . $validationresult);
+            }
+
             $this->resolvedroles = $this->resolve_roles();
             $this->contents = $this->get_users();
             if ($this->format === self::FORMAT_CSV) {
@@ -212,7 +257,8 @@ class tool_downloaddata_processor {
     }
 
     /**
-     * Get the courses to be saved to a file.
+     * Get the courses to be saved to a file. The courses are returned with all
+     * the available fields.
      *
      * @throws coding_exception.
      * @param string[] $options Function options.
@@ -224,15 +270,6 @@ class tool_downloaddata_processor {
         $courses = $DB->get_records('course');
         // Ignoring course Moodle
         foreach ($courses as $key => $course) {
-            // Removing non-existing fields.
-            /*
-            foreach ($this->fields as $k => $f) {
-                if (!property_exists($course, $f)) {
-                    unset($this->fields[$k]);
-                    break;
-                }
-            }
-             */
             if ($course->shortname == 'moodle') {
                 unset($courses[$key]);
                 break;
@@ -626,4 +663,56 @@ class tool_downloaddata_processor {
         }
     }
 
+    /**
+     * Validates fields requested for courses.
+     *
+     * @return bool|string True if validation passes, the invalid field otherwise
+     */
+    protected function validate_course_fields() {
+        foreach ($this->fields as $field) {
+            if (!in_array($field, $this->validcoursefields, true)) {
+                return $field;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Validates fields requested for users.
+     *
+     * @return bool|string True if validation passes, the invalid field otherwise
+     */
+    protected function validate_user_fields() {
+        $processed = array();
+        foreach ($this->fields as $key => $field) {
+            $lcfield = core_text::strtolower($field);
+            $processedfield = null;
+
+            if (in_array($field, $this->standarduserfields) ||
+                    in_array($lcfield, $this->standarduserfields)) {
+                // standard fields are only lowercase
+                $processedfield = $lcfield;
+
+            } else if (in_array($field, $this->profilefields)) {
+                // exact profile field name match - these are case sensitive
+                $processedfield = $field;
+
+            } else if (in_array($lcfield, $this->profilefields)) {
+                // hack: somebody wrote uppercase in csv file, but the system knows only lowercase profile field
+                $processedfield = $lcfield;
+            }
+
+            // If the field hasn't been processed it means it's an invalid field.
+            if (is_null($processedfield)) {
+                return $field;
+            } else {
+                $processed[$key] = $processedfield;
+            }
+        }
+
+        $this->fields = $processed;
+
+        return true;
+    }
 }

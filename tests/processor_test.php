@@ -204,6 +204,32 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     }
 
     /**
+     * Tests if requesting invalid course fields throws an exception.
+     */
+    public function test_invalid_course_fields() {
+        $this->resetAfterTest(true);
+
+        $options = self::$options_courses_csv;
+        $fields = array('test');
+        $processor = new tool_downloaddata_processor($options, $fields);
+        $this->setExpectedException('coding_exception', get_string('invalidfield', 'tool_downloaddata'));
+        $processor->prepare();
+    }
+
+    /**
+     * Tests if requesting invalid user fields throws an exception.
+     */
+    public function test_invalid_user_fields() {
+        $this->resetAfterTest(true);
+
+        $options = self::$options_users_csv;
+        $fields = array('test');
+        $processor = new tool_downloaddata_processor($options, $fields);
+        $this->setExpectedException('coding_exception', get_string('invalidfield', 'tool_downloaddata'));
+        $processor->prepare();
+    }
+
+    /**
      * Tests if accessing the file object before preparing the file throws an exception.
      */
     public function test_file_not_prepared() {
