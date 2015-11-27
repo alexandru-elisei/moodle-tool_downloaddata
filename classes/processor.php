@@ -112,7 +112,7 @@ class tool_downloaddata_processor {
                 !in_array($options['data'], array(self::DATA_COURSES, self::DATA_USERS))) {
             throw new coding_exception(get_string('invaliddata', 'tool_downloaddata'));
         }
-        $this->coursesorusers = (int) $options['data'];
+        $this->coursesorusers = (int)$options['data'];
 
         $this->fields = $fields;
 
@@ -120,7 +120,7 @@ class tool_downloaddata_processor {
             if (!in_array($options['format'], array(self::FORMAT_CSV, self::FORMAT_XLS))) {
                 throw new coding_exception(get_string('invalidformat', 'tool_downloaddata'));
             }
-            $this->format = $options['format'];
+            $this->format = (int)$options['format'];
         }
 
         if ($this->format == self::FORMAT_CSV && isset($options['delimiter'])) {
@@ -167,9 +167,9 @@ class tool_downloaddata_processor {
 
         if ($this->coursesorusers === self::DATA_COURSES) {
             $this->contents = $this->get_courses();
-            if ($this->format === self::FORMAT_CSV) {
+            if ($this->format == self::FORMAT_CSV) {
                 $this->fileobject = $this->save_courses_to_csv();
-            } else if ($this->format === self::FORMAT_XLS) {
+            } else if ($this->format == self::FORMAT_XLS) {
                 $this->fileobject = $this->save_courses_to_xls();
             }
         } else if ($this->coursesorusers === self::DATA_USERS) {
@@ -391,7 +391,9 @@ class tool_downloaddata_processor {
     protected function save_courses_to_xls() {
         global $DB;
 
-        $workbook = new MoodleExcelWorkbook('courses');
+        $filename = 'courses';
+        $filename .= clean_filename('-' . gmdate("Ymd_Hi"));
+        $workbook = new MoodleExcelWorkbook($filename);
         $worksheet = tool_downloaddata_config::$worksheetnames['courses'];
         $workbook->$worksheet = $workbook->add_worksheet($worksheet);
 
@@ -511,7 +513,9 @@ class tool_downloaddata_processor {
     public function save_users_to_xls() {
         global $DB;
 
-        $workbook = new MoodleExcelWorkbook('users');
+        $filename = 'users';
+        $filename .= clean_filename('-' . gmdate("Ymd_Hi"));
+        $workbook = new MoodleExcelWorkbook($filename);
         $sheetname = tool_downloaddata_config::$worksheetnames['users'];
         $workbook->$sheetname = $workbook->add_worksheet($sheetname);
 
@@ -554,7 +558,6 @@ class tool_downloaddata_processor {
         // Creating the role1, role2, etc. and associated course1, course2, etc. fields.
         $columncount = count($userfields);
         $columns = $userfields;
-        fputs(STDERR, count($columns));
         if ($maxcolumncount > $columncount) {
             $rolenumber = 1;
             for ($i = $columncount; $i < $maxcolumncount; $i += 2) {
@@ -565,7 +568,6 @@ class tool_downloaddata_processor {
                 $rolenumber++;
             }
         }
-        fputs(STDERR, count($columns));
         $this->print_column_names($columns, $workbook->$sheetname);
         $this->set_column_widths($columns, $workbook->$sheetname);
 

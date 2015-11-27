@@ -43,8 +43,8 @@ class tool_downloaddata_courses_form extends moodleform {
         $mform->addElement('header', 'generalhdr', get_string('downloadcourses', 'tool_downloaddata'));
 
         $format_choices = array(
-            TOOL_DOWNLOADDATA_FORMAT_CSV => 'Comma separated values (.csv)',
-            TOOL_DOWNLOADDATA_FORMAT_XLS => 'Microsoft Excel 2007 workbook (.xls)'
+            tool_downloaddata_processor::FORMAT_CSV => 'Comma separated values (.csv)',
+            tool_downloaddata_processor::FORMAT_XLS => 'Microsoft Excel 2007 workbook (.xls)'
         );
         $mform->addElement('select', 'format', 
             get_string('format', 'tool_downloaddata'), $format_choices);
@@ -53,13 +53,13 @@ class tool_downloaddata_courses_form extends moodleform {
         $encodings = core_text::get_encodings();
         $mform->addElement('select', 'encoding', get_string('encoding', 'tool_downloaddata'), $encodings);
         $mform->setDefault('encoding', 'UTF-8');
-        $mform->disabledIf('encoding', 'format', 'noteq', TOOL_DOWNLOADDATA_FORMAT_CSV);
+        $mform->disabledIf('encoding', 'format', 'noteq', tool_downloaddata_processor::FORMAT_CSV);
 
         $delimiters = csv_import_reader::get_delimiter_list();
         $mform->addElement('select', 'delimiter_name', 
                            get_string('csvdelimiter', 'tool_downloaddata'), $delimiters);
         $mform->setDefault('delimiter_name', 'comma');
-        $mform->disabledIf('delimiter_name', 'format', 'noteq', TOOL_DOWNLOADDATA_FORMAT_CSV);
+        $mform->disabledIf('delimiter_name', 'format', 'noteq', tool_downloaddata_processor::FORMAT_CSV);
 
         $useoverrides = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'useoverrides', 
@@ -72,7 +72,6 @@ class tool_downloaddata_courses_form extends moodleform {
                            get_string('sortbycategorypath', 'tool_downloaddata'), $sortbycategorypath);
         $mform->setDefault('sortbycategorypath', 'true');
         $mform->addHelpButton('sortbycategorypath', 'sortbycategorypath', 'tool_downloaddata');
-        $mform->disabledIf('sortbycategorypath', 'data', 'noteq', TOOL_DOWNLOADDATA_DATA_COURSES);
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
     }

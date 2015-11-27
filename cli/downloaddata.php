@@ -28,7 +28,6 @@ require(__DIR__ . '/../../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/coursecatlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
-require_once(__DIR__ . '/../locallib.php');
 
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(
@@ -166,7 +165,7 @@ if ($options['useoverrides']) {
 
 $processor = new tool_downloaddata_processor($options, $fields, $overrides);
 $processor->prepare();
-//$processor->download();
+$processor->download();
 /*
 $csv = $processor->get_file_object();
 $csv->print_csv_data(true);

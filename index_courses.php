@@ -27,7 +27,6 @@ require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/filelib.php');
-require_once(__DIR__ . '/locallib.php');
 
 core_php_time_limit::raise(60*60); // 1 hour should be enough
 raise_memory_limit(MEMORY_HUGE);
@@ -42,13 +41,24 @@ if (empty($options)) {
     if ($formdata = $mform1->get_data()) {
         $options = array();
         $options['format'] = $formdata->format;
-        $options['data'] = TOOL_DOWNLOADDATA_DATA_COURSES;
+        $options['data'] = tool_downloaddata_processor::DATA_COURSES;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = array();
         $options['useoverrides'] = ($formdata->useoverrides == 'true');
+        if ($options['useoverrides']) {
+            $overrides = tool_downloaddata_config::$courseoverrides;
+        } else {
+            $overrides = array();
+        }
+        $fields = tool_downloaddata_config::$coursefields;
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;
 
+        $processor = new tool_downloaddata_processor($options, $fields, $overrides);
+        $processor->prepare();
+        $processor->download();
+
+        /*
         $contents = tool_downloaddata_get_courses($options);
         $output = 'courses';
         $roles = null;
@@ -61,6 +71,7 @@ if (empty($options)) {
             $csv = tool_downloaddata_save_to_csv($options['data'], $output, $options, $contents, $roles);
             $csv->download_file();
         }
+         */
     } else {
         // Printing the form.
         echo $OUTPUT->header();
