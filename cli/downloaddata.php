@@ -40,6 +40,7 @@ list($options, $unrecognized) = cli_get_params(array(
     'roles' => 'all',
     'overrides' => '',
     'sortbycategorypath' => false,
+    'usedefaults' => true,
     'useoverrides' => false,
 ),
 array(
@@ -65,8 +66,9 @@ Options:
 -f, --format               Format: csv (default) or xls
 -h, --help                 Print out this help
 -r, --roles                Specific roles for users (comma separated) or all roles
--o, --overrides            Override fields, comma separated, in the form field=value. Used in conjuction with useoverrides
+-o, --overrides            Override fields, comma separated, in the form field=value. Ignored when useoverrides is false
 -s, --sortbycategorypath   Sort courses by category path alphabetically: true (default) or false
+    --usedefaults          Use default values from DOWNLOADDATA_DIRECTORY/config.php for fields and overrides: true (default) or false. NOTE: Values given as arguments replace the default values
     --useoverrides         Override fields with data from locallib: true or false (default)
 
 Example:
@@ -85,43 +87,59 @@ if ($options['help']) {
 }
 
 $dataoptions = array(
-    'courses' => TOOL_DOWNLOADDATA_DATA_COURSES,
-    'users' => TOOL_DOWNLOADDATA_DATA_USERS
+    'courses' => tool_downloaddata_processor::DATA_COURSES,
+    'users' => tool_downloaddata_processor::DATA_USERS
 );
 if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
-    throw new coding_exception(get_string('invaliddata', 'tool_downloaddata'));
+    echo "\n" . get_string('invaliddata', 'tool_downloaddata') . "!\n";
+    echo $help;
+    die();
 }
 $options['data'] = $dataoptions[$options['data']];
 
+$formats = array(
+    'csv' => tool_downloaddata_processor::FORMAT_CSV,
+    'xls' => tool_downloaddata_processor::FORMAT_XLS
+);
+if (!isset($options['format']) || !isset($formats[$options['format']])) {
+    echo "\n" . get_string('invalidformat', 'tool_downloaddata') . "!\n";
+    echo $help;
+    die();
+}
+$options['format'] = $formats[$options['format']];
+
+$encodings = core_text::get_encodings();
+if (!isset($encodings[$options['encoding']])) {
+    echo "\n" . get_string('invalidencoding', 'tool_downloaddata') . "!\n";
+    echo $help;
+    die();
+}
+
+$delimiters = csv_import_reader::get_delimiter_list();
+if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) {
+    echo "\n" . get_string('invaliddelimiter', 'tool_downloaddata') . "!\n";
+    echo $help;
+    die();
+}
+
+$overrides = array();
+$options['useoverrides'] = ($options['useoverrides'] === true ||
+                            core_text::strtolower($options['useoverrides']) == 'true');
+$options['usedefaults'] = ($options['usedefaults'] === true ||
+                            core_text::strtolower($options['usedefaults']) == 'true');
+$options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
+                                  core_text::strtolower($options['sortbycategorypath']) == 'true');
+
+// Emulate admin session.
+cron_setup_user();
+
+$fields = array();
 if (!empty($options['fields'])) {
     $fields = explode(',', $options['fields']);
     foreach ($fields as $key => $field) {
         $fields[$key] = trim($field);
     }
 }
-
-$formats = array(
-    'csv' => TOOL_DOWNLOADDATA_FORMAT_CSV,
-    'xls' => TOOL_DOWNLOADDATA_FORMAT_XLS
-);
-if (!isset($options['format']) || !isset($formats[$options['format']])) {
-    throw new coding_exception(get_string('invalidformat', 'tool_downloaddata'));
-}
-$options['format'] = $formats[$options['format']];
-
-$encodings = core_text::get_encodings();
-if (!isset($encodings[$options['encoding']])) {
-    throw new coding_exception(get_string('invalidencoding', 'tool_downloaddata'));
-}
-
-$delimiters = csv_import_reader::get_delimiter_list();
-if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) {
-    throw new coding_exception(get_string('invaliddelimiter', 'tool_downloaddata'));
-}
-
-$overrides = array();
-$options['useoverrides'] = ($options['useoverrides'] === true ||
-                             core_text::strtolower($options['useoverrides']) == 'true');
 if ($options['useoverrides']) {
     if (!empty($options['overrides'])) {
         $o = explode(',', $options['overrides']);
@@ -132,36 +150,32 @@ if ($options['useoverrides']) {
     }
 }
 
-$options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
-                                  core_text::strtolower($options['sortbycategorypath']) == 'true');
-
-// Emulate admin session.
-cron_setup_user();
-
 if ($options['data'] == tool_downloaddata_processor::DATA_USERS) {
-    if (!isset($fields)) {
+    if (empty($fields) && $options['usedefaults']) {
         $fields = tool_downloaddata_config::$userfields;
     }
-    if ($options['useoverrides'] && empty($overrides)) {
+    if ($options['useoverrides'] && empty($overrides) && $options['usedefaults']) {
         $overrides = tool_downloaddata_config::$useroverrides;
     }
 } else if ($options['data'] == tool_downloaddata_processor::DATA_COURSES) {
-    if (!isset($fields)) {
+    if (empty($fields) && $options['usedefaults']) {
         $fields = tool_downloaddata_config::$coursefields;
     }
-    if ($options['useoverrides'] && empty($overrides)) {
+    if ($options['useoverrides'] && empty($overrides) && $options['usedefaults']) {
         $overrides = tool_downloaddata_config::$courseoverrides;
     }
 }
 
-/*
-if (empty($overrides)) {
-    echo "overrides empty\n";
+if (empty($fields)) {
+    echo "\n" . get_string('emptyfields', 'tool_downloaddata') . "!\n";
+    echo $help;
+    die();
 }
-if ($options['useoverrides']) {
-    echo "useoverrides true\n";
+if ($options['useoverrides'] && empty($overrides)) {
+    echo "\n" . get_string('emptyoverrides', 'tool_downloaddata') . "!\n";
+    echo $help;
+    die();
 }
- */
 
 $processor = new tool_downloaddata_processor($options, $fields, $overrides);
 $processor->prepare();
@@ -175,8 +189,6 @@ $xls = $processor->get_file_object();
 $xls->send('test.xls');
 $xls->close();
  */
-
-//var_dump($output);
 
 /*
 $contents = null;

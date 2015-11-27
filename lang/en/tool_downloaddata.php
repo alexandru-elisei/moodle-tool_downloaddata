@@ -24,6 +24,7 @@ $string['csvdelimiter'] = 'CSV delimiter';
 $string['download'] = 'Download';
 $string['downloadcourses'] = 'Download courses';
 $string['downloadusers'] = 'Download users';
+$string['emptyfields'] = 'No fields specified';
 $string['emptyroles'] = 'No roles specified';
 $string['emptyoverrides'] = 'No override fields specified';
 $string['encoding'] = 'Encoding';
