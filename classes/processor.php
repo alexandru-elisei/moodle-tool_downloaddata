@@ -214,6 +214,7 @@ class tool_downloaddata_processor {
     /**
      * Get the courses to be saved to a file.
      *
+     * @throws coding_exception.
      * @param string[] $options Function options.
      * @return stdClass[] The courses.
      */
@@ -223,6 +224,15 @@ class tool_downloaddata_processor {
         $courses = $DB->get_records('course');
         // Ignoring course Moodle
         foreach ($courses as $key => $course) {
+            // Removing non-existing fields.
+            /*
+            foreach ($this->fields as $k => $f) {
+                if (!property_exists($course, $f)) {
+                    unset($this->fields[$k]);
+                    break;
+                }
+            }
+             */
             if ($course->shortname == 'moodle') {
                 unset($courses[$key]);
                 break;
@@ -461,6 +471,18 @@ class tool_downloaddata_processor {
                 }
             }
         }
+
+        // Removing non-existing fields.
+        /*
+        foreach($users as $username => $user) {
+            foreach ($this->fields as $k => $f) {
+                if (!property_exists($user, $f)) {
+                    unset($this->fields[$k]);
+                    break;
+                }
+            }
+        }
+         */
 
         return $users;
     }

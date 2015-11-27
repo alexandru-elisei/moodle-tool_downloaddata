@@ -27,6 +27,7 @@ require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/filelib.php');
+require_once(__DIR__ . '/locallib.php');
 
 core_php_time_limit::raise(60*60); // 1 hour should be enough
 raise_memory_limit(MEMORY_HUGE);
@@ -36,7 +37,6 @@ admin_externalpage_setup('tooldownloaddata_users');
 
 if (empty($options)) {
     $mform1 = new tool_downloaddata_users_form();
-
     // Downloading data.
     if ($formdata = $mform1->get_data()) {
         $options = array();
@@ -44,35 +44,37 @@ if (empty($options)) {
         $options['data'] = tool_downloaddata_processor::DATA_USERS;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = $formdata->roles;
+        $options['usedefaults'] = ($formdata->usedefaults == 'true');
         $options['useoverrides'] = ($formdata->useoverrides == 'true');
+        $options['sortbycategorypath'] = false;
+        $options['delimiter'] = $formdata->delimiter_name;
+
+        if (!empty($formdata->fields)) {
+            $fields = tool_downloaddata_process_fields($formdata->fields);
+        } else if ($options['usedefaults']) {
+            $fields = tool_downloaddata_config::$userfields;
+        }
+
         if ($options['useoverrides']) {
-            $overrides = tool_downloaddata_config::$useroverrides;
+            if (!empty($formdata->overrides)) {
+                $overrides = tool_downloaddata_process_overrides($formdata->overrides);
+            } else if ($options['usedefaults']) {
+                $overrides = tool_downloaddata_config::$useroverrides;
+            }
         } else {
             $overrides = array();
         }
-        $fields = tool_downloaddata_config::$userfields;
-        $options['sortbycategorypath'] = false;
-        $options['delimiter'] = $formdata->delimiter_name;
+
+        if (empty($fields)) {
+            print_error('emptyfields', 'tool_downloaddata', $returnurl);
+        }
+        if ($options['useoverrides'] && empty($overrides)) {
+            print_error('emptyoverrides', 'tool_downloaddata', $returnurl);
+        }
 
         $processor = new tool_downloaddata_processor($options, $fields, $overrides);
         $processor->prepare();
         $processor->download();
-        /*
-        $contents = null;
-        $roles = null;
-        $roles = tool_downloaddata_resolve_roles($options['roles']);
-        $contents = tool_downloaddata_get_users($roles, $options);
-        $output = $options['roles'];
-        if ($options['format'] == TOOL_DOWNLOADDATA_FORMAT_XLS) {
-            $today = date('Ymd') . '_' . date('Hi');
-            $output = $output . '_' . $today . '.xls';
-            $workbook = tool_downloaddata_save_to_excel($options['data'], $output, $options, $contents, $roles);
-            $workbook->close();
-        } else if ($options['format'] == TOOL_DOWNLOADDATA_FORMAT_CSV) {
-            $csv = tool_downloaddata_save_to_csv($options['data'], $output, $options, $contents, $roles);
-            $csv->download_file();
-        }
-         */
     } else {
         // Printing the form.
         echo $OUTPUT->header();

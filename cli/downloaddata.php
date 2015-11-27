@@ -28,6 +28,7 @@ require(__DIR__ . '/../../../../config.php');
 require_once($CFG->libdir . '/clilib.php');
 require_once($CFG->libdir . '/coursecatlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
+require_once(__DIR__ . '/../locallib.php');
 
 // Now get cli options.
 list($options, $unrecognized) = cli_get_params(array(
@@ -133,23 +134,15 @@ $options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
 // Emulate admin session.
 cron_setup_user();
 
-$fields = array();
+// Processing fields and override fields.
 if (!empty($options['fields'])) {
-    $fields = explode(',', $options['fields']);
-    foreach ($fields as $key => $field) {
-        $fields[$key] = trim($field);
-    }
+    $fields = tool_downloaddata_process_fields($options['fields']);
 }
 if ($options['useoverrides']) {
     if (!empty($options['overrides'])) {
-        $o = explode(',', $options['overrides']);
-        foreach ($o as $value) {
-            $override = explode('=', $value);
-            $overrides[trim($override[0])] = trim($override[1]);
-        }
+        $overrides = tool_downloaddata_process_overrides($options['overrides']);
     }
 }
-
 if ($options['data'] == tool_downloaddata_processor::DATA_USERS) {
     if (empty($fields) && $options['usedefaults']) {
         $fields = tool_downloaddata_config::$userfields;
