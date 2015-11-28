@@ -106,7 +106,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options = array();
 
         $fields = tool_downloaddata_config::$userfields;
-        $this->setExpectedException('coding_exception', get_string('invaliddata', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception', get_string('invaliddata', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
 
@@ -119,7 +119,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options = self::$options_users_csv;
         $options['data'] = 4;
         $fields = tool_downloaddata_config::$userfields;
-        $this->setExpectedException('coding_exception', get_string('invaliddata', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception', get_string('invaliddata', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
 
@@ -133,7 +133,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options['data'] = tool_downloaddata_processor::DATA_USERS;
         $options['format'] = 10;
         $fields = tool_downloaddata_config::$userfields;
-        $this->setExpectedException('coding_exception', get_string('invalidformat', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception', get_string('invalidformat', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
 
@@ -146,7 +146,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options = self::$options_users_csv;
         $options['delimiter'] = 'invalid';
         $fields = tool_downloaddata_config::$userfields;
-        $this->setExpectedException('coding_exception', get_string('invaliddelimiter', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception', get_string('invaliddelimiter', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
 
@@ -159,7 +159,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options = self::$options_users_csv;
         $options['encoding'] = 'invalid';
         $fields = tool_downloaddata_config::$userfields;
-        $this->setExpectedException('coding_exception', get_string('invalidencoding', 'tool_uploadcourse'));
+        $this->setExpectedException('moodle_exception', get_string('invalidencoding', 'tool_uploadcourse'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
  
@@ -173,7 +173,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options['useoverrides'] = true;
         $fields = tool_downloaddata_config::$userfields;
         $overrides = array();
-        $this->setExpectedException('coding_exception', get_string('emptyoverrides', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception', get_string('emptyoverrides', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields, $overrides);
     }
 
@@ -212,7 +212,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options = self::$options_courses_csv;
         $fields = array('test');
         $processor = new tool_downloaddata_processor($options, $fields);
-        $this->setExpectedException('coding_exception', get_string('invalidfield', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception', get_string('invalidfield', 'tool_downloaddata'));
         $processor->prepare();
     }
 
@@ -225,7 +225,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options = self::$options_users_csv;
         $fields = array('test');
         $processor = new tool_downloaddata_processor($options, $fields);
-        $this->setExpectedException('coding_exception', get_string('invalidfield', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception', get_string('invalidfield', 'tool_downloaddata'));
         $processor->prepare();
     }
 
@@ -252,7 +252,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options['roles'] = 'invalid';
         $fields = tool_downloaddata_config::$userfields;
         $processor = new tool_downloaddata_processor($options, $fields);
-        $this->setExpectedException('coding_exception', get_string('invalidrole', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception', get_string('invalidrole', 'tool_downloaddata'));
         $processor->prepare();
     }
    
@@ -361,6 +361,29 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     }
 
     /**
+     * Tests downloading users when no user accounts are present.
+     */
+    public function test_download_users_no_users() {
+        $this->resetAfterTest(true);
+
+        $fields = array(
+            'username'
+        );
+        $options = self::$options_users_csv;
+        $options['roles'] = 'all';
+        $processor = new tool_downloaddata_processor($options, $fields);
+        $processor->prepare();
+        $csv = $processor->get_file_object();
+
+        $expectedoutput = array(
+            'username'
+        );
+        $expectedoutput = implode("\n", $expectedoutput);
+        $output = rtrim($csv->print_csv_data(true));
+        $this->assertEquals($expectedoutput, $output);
+    }
+
+    /**
      * Tests downloading users.
      */
     public function test_download_users() {
@@ -374,6 +397,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         foreach ($roles as $r) {
             if ($roleid == $r->id) {
                 $role = $r;
+                break;
             }
         }
         $this->getDataGenerator()->enrol_user($user->id, $course->id, $role->id);
@@ -410,6 +434,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         foreach ($roles as $r) {
             if ($roleid == $r->id) {
                 $role = $r;
+                break;
             }
         }
         $this->getDataGenerator()->enrol_user($user->id, $course->id, $role->id);
@@ -435,4 +460,54 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $output = rtrim($csv->print_csv_data(true));
         $this->assertEquals($expectedoutput, $output);
     }
+
+    /**
+     * Tests downloading multiple users with variable number of roles to csv.
+     */
+    public function test_download_multiple_users_to_csv() {
+        global $DB;
+        $this->resetAfterTest(true);
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $roleid1 = $this->getDataGenerator()->create_role();
+        $roleid2 = $this->getDataGenerator()->create_role();
+        $roles = get_all_roles();
+        foreach ($roles as $r) {
+            if ($roleid1 == $r->id) {
+                $role1 = $r;
+            } else if ($roleid2 == $r->id) {
+                $role2 = $r;
+            }
+        }
+        $this->getDataGenerator()->enrol_user($user1->id, $course1->id, $role1->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id, $role1->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course2->id, $role2->id);
+
+        $fields = array(
+            'username'
+        );
+        $options = self::$options_users_csv;
+        $options['roles'] = 'all';
+        $processor = new tool_downloaddata_processor($options, $fields);
+        $processor->prepare();
+        $csv = $processor->get_file_object();
+
+        $expectedoutput = array(
+            'username,course1,role1,course2,role2',
+            $user1->username . ',' . $course1->shortname . ',' . $role1->shortname . ',,',
+            $user2->username . ',' . $course1->shortname . ',' . $role1->shortname . ',' . $course2->shortname . ',' . $role2->shortname,
+        );
+        $expectedoutput = implode("\n", $expectedoutput);
+        $output = rtrim($csv->print_csv_data(true));
+        // Sorting the output lines as the user order is random.
+        $output = explode("\n", $output);
+        sort($output);
+        $output = implode("\n", $output);
+        $output = rtrim($output);
+        $this->assertEquals($expectedoutput, $output);
+    }
+ 
 }

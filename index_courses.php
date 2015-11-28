@@ -29,7 +29,7 @@ require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/filelib.php');
 require(__DIR__ . '/locallib.php');
 
-core_php_time_limit::raise(60*60); // 1 hour should be enough
+core_php_time_limit::raise(60*60); // 1 hour
 raise_memory_limit(MEMORY_HUGE);
 
 require_login();

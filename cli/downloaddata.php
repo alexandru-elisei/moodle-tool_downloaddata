@@ -173,39 +173,3 @@ if ($options['useoverrides'] && empty($overrides)) {
 $processor = new tool_downloaddata_processor($options, $fields, $overrides);
 $processor->prepare();
 $processor->download();
-/*
-$csv = $processor->get_file_object();
-$csv->print_csv_data(true);
- */
-/*
-$xls = $processor->get_file_object();
-$xls->send('test.xls');
-$xls->close();
- */
-
-/*
-$contents = null;
-$roles = null;
-if ($data == TOOL_DOWNLOADDATA_DATA_COURSES) {
-    $contents = tool_downloaddata_get_courses($options);
-    if (empty($contents)) {
-        throw new coding_exception(get_string('emptycontents', 'tool_downloaddata'));
-    }
-} else if ($data == TOOL_DOWNLOADDATA_DATA_USERS) {
-    $roles = tool_downloaddata_resolve_roles($options['roles']);
-    if ($roles == TOOL_DOWNLOADDATA_INVALID_ROLES) {
-        fputs(STDERR, get_string('invalidrole', 'tool_downloaddata') . "\n");
-        die();
-    }
-    $contents = tool_downloaddata_get_users($roles, $options);
-}
-
-$output = 'phonyoutput';
-if ($format == TOOL_DOWNLOADDATA_FORMAT_XLS) {
-    $workbook = tool_downloaddata_save_to_excel($data, $output, $options, $contents, $roles);
-    $workbook->close();
-} else if ($format == TOOL_DOWNLOADDATA_FORMAT_CSV) {
-    $csv = tool_downloaddata_save_to_csv($data, $output, $options, $contents, $roles);
-    $csv->download_file();
-}
- */

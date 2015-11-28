@@ -29,11 +29,13 @@ require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once(__DIR__ . '/locallib.php');
 
-core_php_time_limit::raise(60*60); // 1 hour should be enough
+core_php_time_limit::raise(60*60); // 1 hour
 raise_memory_limit(MEMORY_HUGE);
 
 require_login();
 admin_externalpage_setup('tooldownloaddata_users');
+
+$returnurl = new moodle_url('/admin/tool/downloaddata/index_users.php');
 
 if (empty($options)) {
     $mform1 = new tool_downloaddata_users_form();

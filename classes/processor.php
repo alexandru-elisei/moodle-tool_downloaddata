@@ -123,7 +123,7 @@ class tool_downloaddata_processor {
     /**
      * Class constructor.
      *
-     * @throws coding_exception.
+     * @throws moodle_exception.
      * @param string[] $options Download options.
      * @param string[] $fields The fields that will be downloaded.
      * @param string[] $overrides Fields to be overridden.
@@ -131,7 +131,7 @@ class tool_downloaddata_processor {
     public function __construct($options, $fields, $overrides = null) {
         if (!isset($options['data']) ||
                 !in_array($options['data'], array(self::DATA_COURSES, self::DATA_USERS))) {
-            throw new coding_exception(get_string('invaliddata', 'tool_downloaddata'));
+            throw new moodle_exception(get_string('invaliddata', 'tool_downloaddata'));
         }
         $this->coursesorusers = (int)$options['data'];
 
@@ -139,7 +139,7 @@ class tool_downloaddata_processor {
 
         if (isset($options['format'])) {
             if (!in_array($options['format'], array(self::FORMAT_CSV, self::FORMAT_XLS))) {
-                throw new coding_exception(get_string('invalidformat', 'tool_downloaddata'));
+                throw new moodle_exception(get_string('invalidformat', 'tool_downloaddata'));
             }
             $this->format = (int)$options['format'];
         }
@@ -147,7 +147,7 @@ class tool_downloaddata_processor {
         if ($this->format == self::FORMAT_CSV && isset($options['delimiter'])) {
             $delimiters = csv_import_reader::get_delimiter_list();
             if (!isset($delimiters[$options['delimiter']])) {
-                throw new coding_exception(get_string('invaliddelimiter', 'tool_downloaddata'));
+                throw new moodle_exception(get_string('invaliddelimiter', 'tool_downloaddata'));
             }
             $this->delimiter = $options['delimiter'];
         }
@@ -155,7 +155,7 @@ class tool_downloaddata_processor {
         if (isset($options['encoding'])) {
             $encodings = core_text::get_encodings();
             if (!isset($encodings[$options['encoding']])) {
-                throw new coding_exception(get_string('invalidencoding', 'tool_uploadcourse'));
+                throw new moodle_exception(get_string('invalidencoding', 'tool_uploadcourse'));
             }
             $this->encoding = $options['encoding'];
         }
@@ -167,7 +167,7 @@ class tool_downloaddata_processor {
         if (isset($options['useoverrides']) && $options['useoverrides'] == true) {
             $this->useoverrides = $options['useoverrides'];
             if (empty($overrides)) {
-                throw new coding_exception(get_string('emptyoverrides', 'tool_downloaddata'));
+                throw new moodle_exception(get_string('emptyoverrides', 'tool_downloaddata'));
             }
             $this->overrides = $overrides;
         }
@@ -181,7 +181,7 @@ class tool_downloaddata_processor {
     /**
      * Prepare the file to be downloaded.
      *
-     * @throws coding_exception.
+     * @throws coding_exception| moodle_exception.
      */
     public function prepare() {
         global $DB;
@@ -194,7 +194,7 @@ class tool_downloaddata_processor {
         if ($this->coursesorusers === self::DATA_COURSES) {
             $validationresult = $this->validate_course_fields();
             if ($validationresult !== true) {
-                throw new coding_exception(get_string('invalidfield', 'tool_downloaddata') . ': ' . $validationresult);
+                throw new moodle_exception(get_string('invalidfield', 'tool_downloaddata') . ': ' . $validationresult);
             }
 
             $this->contents = $this->get_courses();
@@ -215,7 +215,7 @@ class tool_downloaddata_processor {
             }
             $validationresult  =$this->validate_user_fields();
             if ($validationresult !== true) {
-                throw new coding_exception(get_string('invalidfield', 'tool_downloaddata') . ': ' . $validationresult);
+                throw new moodle_exception(get_string('invalidfield', 'tool_downloaddata') . ': ' . $validationresult);
             }
 
             $this->resolvedroles = $this->resolve_roles();
@@ -247,6 +247,7 @@ class tool_downloaddata_processor {
     /**
      * Return the file object with the requested data.
      *
+     * @throws coding_exception.
      * @return csv_export_writer | MoodleExcelWorkbook The file object.
      */
     public function get_file_object() {
@@ -260,7 +261,6 @@ class tool_downloaddata_processor {
      * Get the courses to be saved to a file. The courses are returned with all
      * the available fields.
      *
-     * @throws coding_exception.
      * @param string[] $options Function options.
      * @return stdClass[] The courses.
      */
@@ -470,7 +470,6 @@ class tool_downloaddata_processor {
     /**
      * Get all the users to be saved to file.
      *
-     * @throws coding_exception.
      * @return stdClass[] The users.
      */
     protected function get_users() {
@@ -509,31 +508,17 @@ class tool_downloaddata_processor {
             }
         }
 
-        // Removing non-existing fields.
-        /*
-        foreach($users as $username => $user) {
-            foreach ($this->fields as $k => $f) {
-                if (!property_exists($user, $f)) {
-                    unset($this->fields[$k]);
-                    break;
-                }
-            }
-        }
-         */
-
         return $users;
     }
 
     /**
      * Validate and process specified user roles.
      *
-     * @throws coding_exception.
+     * @throws moodle_exception.
      * @param string $roles Comma separated list of roles.
      * @return string[] $roles Numerically indexed array of roles.
      */
     protected function resolve_roles() {
-        global $TOOL_DOWNLOADDATA_ROLESCACHE;
-
         $this->rolescache = array();
         $allroles = get_all_roles();
         // Building roles cache.
@@ -557,7 +542,7 @@ class tool_downloaddata_processor {
             // Checking for invalid roles
             foreach ($ret as $key => $role) {
                 if (!isset($this->rolescache[$role])) {
-                    throw new coding_exception(get_string('invalidrole', 'tool_downloaddata'));
+                    throw new moodle_exception(get_string('invalidrole', 'tool_downloaddata'));
                 }
             }
         }
