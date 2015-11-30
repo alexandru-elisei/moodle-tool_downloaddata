@@ -45,6 +45,7 @@ $string['overrides_help'] = 'Enter the fields to override, as a comma-separated 
 $string['processstarted'] = 'Process already started';
 $string['pluginname'] = 'Download courses and users';
 $string['roles'] = 'Roles';
+$string['roles_help'] = 'Download users who have the specified role. If a user has more than one role, only the requested role will be printed. If you want a list of users with all their roles, choose "All"';
 $string['sortbycategorypath'] = 'Sort by category path';
 $string['sortbycategorypath_help'] = 'Sort courses in alphabetic order by category path. Useful if using different paths similar to "Year 1 / Semester 1", "Year 1 / Semester 2" and so on.';
 $string['usedefaults'] = 'Use defaults';

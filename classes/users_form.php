@@ -56,6 +56,7 @@ class tool_downloaddata_users_form extends moodleform {
         $roles['all'] = 'All';
         $mform->addElement('select', 'roles', get_string('roles', 'tool_downloaddata'), $roles);
         $mform->setDefault('roles', 'editingteacher');
+        $mform->addHelpButton('roles', 'roles', 'tool_downloaddata');
 
         $format_choices = array(
             tool_downloaddata_processor::FORMAT_CSV => get_string('formatcsv', 'tool_downloaddata'),
