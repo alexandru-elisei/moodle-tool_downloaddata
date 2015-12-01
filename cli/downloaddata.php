@@ -172,4 +172,5 @@ if ($options['useoverrides'] && empty($overrides)) {
 
 $processor = new tool_downloaddata_processor($options, $fields, $overrides);
 $processor->prepare();
-$processor->download();
+//$processor->download();
+$processor->prepare();

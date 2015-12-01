@@ -75,7 +75,11 @@ if (empty($options)) {
         }
 
         $processor = new tool_downloaddata_processor($options, $fields, $overrides);
-        $processor->prepare();
+        try {
+            $processor->prepare();
+        } catch (Exception $e) {
+            print_error($e->errorcode, $e->module, $returnurl, $e->a);
+        }
         $processor->download();
     } else {
         // Printing the form.

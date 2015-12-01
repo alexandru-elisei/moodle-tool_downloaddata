@@ -210,9 +210,11 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
 
         $options = self::$options_courses_csv;
-        $fields = array('test');
+        $invalidfield = 'test';
+        $fields = array($invalidfield);
         $processor = new tool_downloaddata_processor($options, $fields);
-        $this->setExpectedException('moodle_exception', get_string('invalidfield', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception',
+                                    get_string('invalidfield', 'tool_downloaddata', $invalidfield));
         $processor->prepare();
     }
 
@@ -223,9 +225,11 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
 
         $options = self::$options_users_csv;
-        $fields = array('test');
+        $invalidfield = 'test';
+        $fields = array($invalidfield);
         $processor = new tool_downloaddata_processor($options, $fields);
-        $this->setExpectedException('moodle_exception', get_string('invalidfield', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception',
+                                    get_string('invalidfield', 'tool_downloaddata', $invalidfield));
         $processor->prepare();
     }
 
@@ -249,10 +253,12 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
 
         $options = self::$options_users_csv;
+        $invalidrole = 'invalid';
         $options['roles'] = 'invalid';
         $fields = tool_downloaddata_config::$userfields;
         $processor = new tool_downloaddata_processor($options, $fields);
-        $this->setExpectedException('moodle_exception', get_string('invalidrole', 'tool_downloaddata'));
+        $this->setExpectedException('moodle_exception',
+                                    get_string('invalidrole', 'tool_downloaddata', $invalidrole));
         $processor->prepare();
     }
    
