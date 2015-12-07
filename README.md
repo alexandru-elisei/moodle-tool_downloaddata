@@ -4,11 +4,11 @@
 This is a plugin for Moodle to download users and courses to a CSV or Excel 2007 file. There is also a cli script to use the functionality from the terminal.
 
 #### Installation
-This plugin has been tested to work with Moodle 2.6 and newer. There are no guarantess it will work with earlier versions.
-General installation procedures are those common for all Moodle plugins: https://docs.moodle.org/30/en/Installing_plugins
-The basic process involves cloning the repository into MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata:
+This plugin has been tested to work with Moodle 2.7 and newer. There are no guarantess it will work with earlier versions.
+General installation procedures are those common for all Moodle plugins: https://docs.moodle.org/30/en/Installing_plugins.
+First, you need to choose the branch corresponding to your Moodle version. Then you need to clone the repository into MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata by specifying the branch. For example, if you have Moodle 3.0 installed:
 
-    git clone https://github.com/alexandru-elisei/moodle-tool_downloaddata.git MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata,
+    git clone -b MOODLE_30_STABLE https://github.com/alexandru-elisei/moodle-tool_downloaddata.git MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata,
 
 replacing MOODLE_ROOT_DIRECTORY with the actual Moodle installation root directory path.
 
