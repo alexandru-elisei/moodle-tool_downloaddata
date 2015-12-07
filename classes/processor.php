@@ -93,10 +93,10 @@ class tool_downloaddata_processor {
     /** @var string[] Standard user fields. */
     protected $standarduserfields = array('id', 'username', 'email', 'city',
         'country', 'lang', 'timezone', 'mailformat', 'maildisplay',
-        'maildigest', 'htmleditor', 'autosubscribe', 'institution',
+        'maildigest', 'autosubscribe', 'institution',
         'department', 'idnumber', 'skype', 'msn', 'aim', 'yahoo', 'icq',
         'phone1', 'phone2', 'address', 'url', 'description',
-        'descriptionformat', 'password', 'auth'
+        'descriptionformat', 'auth'
     );
 
     /** @var string[] User profile fields. */
