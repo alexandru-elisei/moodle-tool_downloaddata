@@ -40,7 +40,7 @@ if ($hassiteconfig) {
     $ADMIN->add(
         'accounts', 
         new admin_externalpage(
-            'tooldownloaddata_users', get_string('downloadusers', 'tool_downloaddata'),
+            'tooldownloaddata_users', get_string('downloadusersbyrole', 'tool_downloaddata'),
             "$CFG->wwwroot/$CFG->admin/tool/downloaddata/index_users.php"
         )
     );

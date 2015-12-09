@@ -40,7 +40,7 @@ class tool_downloaddata_users_form extends moodleform {
      */
     public function definition () {
         $mform = $this->_form;
-        $mform->addElement('header', 'generalhdr', get_string('downloadusers', 'tool_downloaddata'));
+        $mform->addElement('header', 'generalhdr', get_string('downloadusersbyrole', 'tool_downloaddata'));
 
         $allroles = get_all_roles();
         $roles = array();

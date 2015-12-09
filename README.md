@@ -1,25 +1,27 @@
 ## moodle-tool_downloaddata
 
 #### Description
-This is a plugin for Moodle to download users and courses to a CSV or Excel 2007 file. There is also a cli script to use the functionality from the terminal.
+This is a plugin for Moodle to download courses and users by role to a CSV or Excel 2007 file. There is also a cli script to use the functionality from the terminal.
 
 #### Installation
 This plugin has been tested to work with Moodle 2.7 and newer. There are no guarantess it will work with earlier versions.
 General installation procedures are those common for all Moodle plugins: https://docs.moodle.org/30/en/Installing_plugins.
-First, you need to choose the branch corresponding to your Moodle version. Then you need to clone the repository into MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata by specifying the branch. For example, if you have Moodle 3.0 installed:
+First, you need to choose the branch corresponding to your Moodle version. Then you can choose between cloning the repository, downloading the zip file and extracting it or using the zip file for the plugin install interface accessible at *Administration > Site administration > Plugins > Install plugins*.
 
-    git clone -b MOODLE_30_STABLE https://github.com/alexandru-elisei/moodle-tool_downloaddata.git MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata,
+If you choose to clone the repository, then you need to clone it into MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata by specifying the branch. For example, if you have Moodle 3.0 installed:
 
-replacing MOODLE_ROOT_DIRECTORY with the actual Moodle installation root directory path.
+    git clone -b MOODLE_30_STABLE https://github.com/alexandru-elisei/moodle-tool_downloaddata.git MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata
 
-As an alternative, you can also download the zip file and either extract it to the same location, either by using it in the install plugin interface from *Administration > Site administration > Plugins > Install plugins*. 
+replacing MOODLE_ROOT_DIRECTORY with the actual Moodle installation root directory path. The zip file should be extracted to the same location.
 
-If you are cloning the git repository keep in mind that this also creates a .git directory.
+If you decide to use the install plugin interface don't forget to *rename the folder inside the archive to downloaddata*.
+
+Keep in mind that cloning the repository also creates a hidden .git directory.
 
 #### Usage
-The plugin creates two entries in Administration: one in *Administration > Site administration > Users > Accounts > Download users* for downloading users, and one in *Administration > Site administration > Courses > Download courses* for downloading courses. From there you can access the full functionality of the plugin.
+The plugin creates two entries in Administration: one in *Administration > Site administration > Users > Accounts > Download users by role* for downloading users, and one in *Administration > Site administration > Courses > Download courses* for downloading courses. From there you can access the full functionality of the plugin.
 
-Further information about how to use the web interface can be found in Moodle docs at [Download courses](https://docs.moodle.org/30/en/Download_courses) for downloading courses and at [Download users](https://docs.moodle.org/30/en/Download_users) for downloading users.
+Further information about how to use the web interface can be found in Moodle docs at [Download courses](https://docs.moodle.org/30/en/Download_courses) for downloading courses and at [Download users by role](https://docs.moodle.org/30/en/Download_users_by_role) for downloading users.
 
 For the cli script, navigate to MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata/cli and do the following:
 
