@@ -24,10 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-// Entry in Site administration -> Courses -> Download courses
+// Entry in Site administration -> Courses -> Download courses.
 if ($hassiteconfig) {
     $ADMIN->add(
-        'courses', 
+        'courses',
         new admin_externalpage(
             'tooldownloaddata_courses', get_string('downloadcourses', 'tool_downloaddata'),
             "$CFG->wwwroot/$CFG->admin/tool/downloaddata/index_courses.php"
@@ -35,10 +35,10 @@ if ($hassiteconfig) {
     );
 }
 
-// Entry in Site administration -> Users -> Accounts -> Download users
+// Entry in Site administration -> Users -> Accounts -> Download users.
 if ($hassiteconfig) {
     $ADMIN->add(
-        'accounts', 
+        'accounts',
         new admin_externalpage(
             'tooldownloaddata_users', get_string('downloadusersbyrole', 'tool_downloaddata'),
             "$CFG->wwwroot/$CFG->admin/tool/downloaddata/index_users.php"

@@ -108,14 +108,14 @@ class tool_downloaddata_processor {
     /** @var string[] Resolved roles. */
     protected $resolvedroles = array();
 
-    /** var bool Whether fields should be overridden or not. */
+    /** @var bool Whether fields should be overridden or not. */
     protected $useoverrides = false;
 
-    /** var bool Sort courses by category path. */
+    /** @var bool Sort courses by category path. */
     protected $sortbycategorypath = false;
 
     /** @var string[] Cache for roles. */
-    protected $rolescache = null; 
+    protected $rolescache = null;
 
     /** @var csv_export_writer | MoodleExcelWorkbook File object with the requested data. */
     protected $fileobject = null;
@@ -194,7 +194,6 @@ class tool_downloaddata_processor {
         if ($this->coursesorusers === self::DATA_COURSES) {
             $validationresult = $this->validate_course_fields();
             if ($validationresult !== true) {
-                //throw new moodle_exception(get_string('invalidfield', 'tool_downloaddata') . ': ' . $validationresult);
                 throw new moodle_exception('invalidfield', 'tool_downloaddata', '', $validationresult);
             }
 
@@ -228,7 +227,7 @@ class tool_downloaddata_processor {
             }
         }
     }
-     
+
     /**
      * Download the file object.
      *
@@ -262,14 +261,13 @@ class tool_downloaddata_processor {
      * Get the courses to be saved to a file. The courses are returned with all
      * the available fields.
      *
-     * @param string[] $options Function options.
      * @return stdClass[] The courses.
      */
     protected function get_courses() {
         global $DB;
 
         $courses = $DB->get_records('course');
-        // Ignoring course Moodle
+        // Ignoring course Moodle.
         foreach ($courses as $key => $course) {
             if ($course->shortname == 'moodle') {
                 unset($courses[$key]);
@@ -336,13 +334,13 @@ class tool_downloaddata_processor {
      *
      * @return csv_export_writer The csv file object.
      */
-    function save_courses_to_csv() {
+    protected function save_courses_to_csv() {
         global $DB;
 
         $csv = new csv_export_writer($this->delimiter);
         $csv->set_filename('courses');
-        
-        // Saving field names
+
+        // Saving field names.
         $fields = $this->fields;
         if ($this->useoverrides) {
             foreach ($this->overrides as $field => $value) {
@@ -369,7 +367,7 @@ class tool_downloaddata_processor {
      *
      * @return csv_export_writer The csv file object.
      */
-    function save_users_to_csv() {
+    protected function save_users_to_csv() {
         global $DB;
 
         $csv = new csv_export_writer($this->delimiter);
@@ -383,7 +381,7 @@ class tool_downloaddata_processor {
             }
         }
 
-        // Saving field names
+        // Saving field names.
         $userfields = $this->fields;
         if ($this->useoverrides) {
             foreach ($this->overrides as $field => $value) {
@@ -457,7 +455,7 @@ class tool_downloaddata_processor {
         $this->set_column_widths($columns, $workbook->$worksheet);
 
         $row = 1;
-        // Saving courses
+        // Saving courses.
         foreach ($this->contents as $key => $course) {
             foreach ($columns as $column => $field) {
                 $workbook->$worksheet->write($row, $column, $course->$field);
@@ -516,7 +514,6 @@ class tool_downloaddata_processor {
      * Validate and process specified user roles.
      *
      * @throws moodle_exception.
-     * @param string $roles Comma separated list of roles.
      * @return string[] $roles Numerically indexed array of roles.
      */
     protected function resolve_roles() {
@@ -540,7 +537,7 @@ class tool_downloaddata_processor {
             }
         } else {
             $ret = explode(',', $this->requestedroles);
-            // Checking for invalid roles
+            // Checking for invalid roles.
             foreach ($ret as $key => $role) {
                 if (!isset($this->rolescache[$role])) {
                     throw new moodle_exception('invalidrole', 'tool_downloaddata', '', $role);
@@ -640,7 +637,7 @@ class tool_downloaddata_processor {
      * @param MoodleExcelWorksheet $worksheet The worksheet.
      */
     protected function set_column_widths($columns, $worksheet) {
-        $lastcolumnindex = count($columns)-1;
+        $lastcolumnindex = count($columns) - 1;
         $worksheet->set_column(0, $lastcolumnindex, tool_downloaddata_config::$columnwidths['default']);
         foreach ($columns as $no => $name) {
             if (isset(tool_downloaddata_config::$columnwidths[$name])) {
@@ -677,15 +674,15 @@ class tool_downloaddata_processor {
 
             if (in_array($field, $this->standarduserfields) ||
                     in_array($lcfield, $this->standarduserfields)) {
-                // standard fields are only lowercase
+                // Standard fields are only lowercase.
                 $processedfield = $lcfield;
 
             } else if (in_array($field, $this->profilefields)) {
-                // exact profile field name match - these are case sensitive
+                // Exact profile field name match - these are case sensitive.
                 $processedfield = $field;
 
             } else if (in_array($lcfield, $this->profilefields)) {
-                // hack: somebody wrote uppercase in csv file, but the system knows only lowercase profile field
+                // Hack: somebody wrote uppercase, but the system knows only lowercase profile field.
                 $processedfield = $lcfield;
             }
 

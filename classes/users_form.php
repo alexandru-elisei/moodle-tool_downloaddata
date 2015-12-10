@@ -58,12 +58,12 @@ class tool_downloaddata_users_form extends moodleform {
         $mform->setDefault('roles', 'editingteacher');
         $mform->addHelpButton('roles', 'roles', 'tool_downloaddata');
 
-        $format_choices = array(
+        $formatchoices = array(
             tool_downloaddata_processor::FORMAT_CSV => get_string('formatcsv', 'tool_downloaddata'),
             tool_downloaddata_processor::FORMAT_XLS => get_string('formatxls', 'tool_downloaddata')
         );
-        $mform->addElement('select', 'format', 
-                           get_string('format', 'tool_downloaddata'), $format_choices);
+        $mform->addElement('select', 'format',
+            get_string('format', 'tool_downloaddata'), $formatchoices);
         $mform->setDefault('format', tool_downloaddata_processor::FORMAT_CSV);
 
         $encodings = core_text::get_encodings();
@@ -72,19 +72,19 @@ class tool_downloaddata_users_form extends moodleform {
         $mform->disabledIf('encoding', 'format', 'noteq', tool_downloaddata_processor::FORMAT_CSV);
 
         $delimiters = csv_import_reader::get_delimiter_list();
-        $mform->addElement('select', 'delimiter_name', 
+        $mform->addElement('select', 'delimiter_name',
                            get_string('csvdelimiter', 'tool_downloaddata'), $delimiters);
         $mform->setDefault('delimiter_name', 'comma');
         $mform->disabledIf('delimiter_name', 'format', 'noteq', tool_downloaddata_processor::FORMAT_CSV);
 
         $usedefaults = array('true' => 'Yes', 'false' => 'No');
-        $mform->addElement('select', 'usedefaults', 
+        $mform->addElement('select', 'usedefaults',
                            get_string('usedefaults', 'tool_downloaddata'), $usedefaults);
         $mform->addHelpButton('usedefaults', 'usedefaults', 'tool_downloaddata');
         $mform->setDefault('usedefaults', 'true');
 
         $useoverrides = array('true' => 'Yes', 'false' => 'No');
-        $mform->addElement('select', 'useoverrides', 
+        $mform->addElement('select', 'useoverrides',
                            get_string('useoverrides', 'tool_downloaddata'), $useoverrides);
         $mform->addHelpButton('useoverrides', 'useoverrides', 'tool_downloaddata');
         $mform->setDefault('useoverrides', 'false');
@@ -93,7 +93,7 @@ class tool_downloaddata_users_form extends moodleform {
         $mform->setExpanded('fieldshdr', false);
 
         $mform->addElement('textarea', 'fields', get_string('fields', 'tool_downloaddata'),
-                           'wrap="virtual" rows="4" cols="40"'); 
+                           'wrap="virtual" rows="4" cols="40"');
         $mform->setType('fields', PARAM_RAW);
         $mform->addHelpButton('fields', 'fields', 'tool_downloaddata');
 
@@ -101,7 +101,7 @@ class tool_downloaddata_users_form extends moodleform {
         $mform->setExpanded('overrideshdr', false);
 
         $mform->addElement('textarea', 'overrides', get_string('overrides', 'tool_downloaddata'),
-                           'wrap="virtual" rows="4" cols="40"'); 
+                           'wrap="virtual" rows="4" cols="40"');
         $mform->setType('overrides', PARAM_RAW);
         $mform->addHelpButton('overrides', 'overrides', 'tool_downloaddata');
 

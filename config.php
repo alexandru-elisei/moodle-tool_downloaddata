@@ -26,12 +26,14 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class with configuration options.
+ *
+ * @package    tool_downloaddata
+ * @copyright  2015 Alexandru Elisei
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tool_downloaddata_config {
-    
-    /**
-     * Column widths for xls (Excel 2007) file format.
-     */
+
+    /** @var array Column widths for xls (Excel 2007) file format. */
     public static $columnwidths = array(
         'default' => 13,
         'category_path' => 30,
@@ -40,18 +42,14 @@ class tool_downloaddata_config {
         'startdate' => 20,
     );
 
-    /**
-     * Output fields for courses.
-     */
+    /** @var array Output fields for courses. */
     public static $coursefields = array(
         'shortname',
         'fullname',
         'category_path',
     );
 
-    /**
-     * Output fields for users.
-     */
+    /** @var array Output fields for users. */
     public static $userfields = array(
         'username',
         'firstname',
@@ -60,23 +58,15 @@ class tool_downloaddata_config {
         'auth'
     );
 
-    /**
-     * Default worksheet names.
-     */
+    /** @var array Default worksheet names. */
     public static $worksheetnames = array(
         'users' => 'users',
         'courses' => 'courses',
     );
 
-    /**
-     * Override values for course fields. Array of 'field' => 'override value' 
-     * elements.
-     */
+    /** @var array Override values for course fields. Array of 'field' => 'override value' elements. */
     public static $courseoverrides = array();
 
-    /**
-     * Override values for user fields. Array of 'field' => 'override value' 
-     * elements.
-     */
+    /** @var array Override values for user fields. Array of 'field' => 'override value' elements. */
     public static $useroverrides = array();
 }

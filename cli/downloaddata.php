@@ -69,7 +69,7 @@ Options:
 -r, --roles                Specific roles for users (comma separated) or all roles
 -o, --overrides            Override fields, comma separated, in the form field=value. Ignored when useoverrides is false
 -s, --sortbycategorypath   Sort courses by category path alphabetically: true (default) or false
-    --usedefaults          Use default values from DOWNLOADDATA_DIRECTORY/config.php for fields and overrides: true (default) or false. NOTE: Values given as arguments replace the default values
+    --usedefaults          Use default values from DOWNLOADDATA_DIRECTORY/config.php for fields and overrides: true (default) or false
     --useoverrides         Override fields with data from locallib: true or false (default)
 
 Example:
@@ -172,5 +172,4 @@ if ($options['useoverrides'] && empty($overrides)) {
 
 $processor = new tool_downloaddata_processor($options, $fields, $overrides);
 $processor->prepare();
-//$processor->download();
-$processor->prepare();
+$processor->download();

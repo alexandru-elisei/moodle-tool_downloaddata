@@ -28,6 +28,7 @@ defined('MOODLE_INTERNAL') || die();
  * Process override fields given as a comma-separated list of field=override pairs.
  *
  * @throws coding_exception.
+ * @param string $rawoverrides Comma-separated list of 'field=override' pairs.
  * @return string[] Array of override fields and their values.
  */
 function tool_downloaddata_process_overrides($rawoverrides) {
@@ -48,6 +49,7 @@ function tool_downloaddata_process_overrides($rawoverrides) {
  * Process fields given as a comma-separated list of field names.
  *
  * @throws coding_exception.
+ * @param string $rawfields Comma-separated list of field names.
  * @return string[] The array of field names.
  */
 function tool_downloaddata_process_fields($rawfields) {

@@ -88,6 +88,6 @@ if (empty($options)) {
         echo $OUTPUT->footer();
         die();
     }
-} 
+}
 
 die;
