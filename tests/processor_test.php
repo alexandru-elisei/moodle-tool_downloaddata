@@ -489,6 +489,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         );
         $options = self::$optionsuserscsv;
         $options['roles'] = 'all';
+        $options['sortbycategorypath'] = true;
         $processor = new tool_downloaddata_processor($options, $fields);
         $processor->prepare();
         $csv = $processor->get_file_object();

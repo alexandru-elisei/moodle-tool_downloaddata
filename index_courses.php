@@ -69,17 +69,18 @@ if (empty($options)) {
         }
 
         if (empty($fields)) {
-            print_error('emptyfields', 'tool_downloaddata', $returnurl);
+            throw new moodle_exception('emptyfields', 'tool_downloaddata', $returnurl);
         }
         if ($options['useoverrides'] && empty($overrides)) {
-            print_error('emptyoverrides', 'tool_downloaddata', $returnurl);
+            throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
         }
 
         $processor = new tool_downloaddata_processor($options, $fields, $overrides);
         try {
             $processor->prepare();
         } catch (Exception $e) {
-            print_error($e->errorcode, $e->module, $returnurl, $e->a);
+			$e->link = $returnurl;
+			throw $e;
         }
         $processor->download();
     } else {
