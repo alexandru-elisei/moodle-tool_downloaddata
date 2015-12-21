@@ -181,7 +181,7 @@ class tool_downloaddata_processor {
     /**
      * Prepare the file to be downloaded.
      *
-     * @throws coding_exception|moodle_exception.
+     * @throws coding_exception | moodle_exception.
      */
     public function prepare() {
         global $DB;
@@ -266,7 +266,7 @@ class tool_downloaddata_processor {
     protected function get_courses() {
         global $DB;
 
-        $courses = $DB->get_records('course');
+        $courses = get_courses();
         // Ignoring course Moodle.
         foreach ($courses as $key => $course) {
             if ($course->shortname == 'moodle') {
@@ -475,19 +475,20 @@ class tool_downloaddata_processor {
         global $DB;
 
         // Constructing the requested user fields.
-        $userfields = $this->fields;
-        foreach ($userfields as $key => $field) {
-            $field = 'u.' . $field;
+        $userfields = array();
+        foreach ($this->fields as $field) {
+			$userfields[] = 'u.' . $field;
         }
         $userfields = implode(',', $userfields);
 
         $courses = $this->get_courses();
         $users = array();
+
         // Finding the users assigned to the course with the specified roles.
         foreach ($courses as $key => $course) {
             $coursecontext = context_course::instance($course->id);
             foreach ($this->resolvedroles as $key => $role) {
-                $usersassigned = get_role_users($this->rolescache[$role], $coursecontext, false, $userfields);
+                $usersassigned = get_role_users($this->rolescache[$role], $coursecontext, false, $userfields, $userfields);
                 foreach ($usersassigned as $username => $user) {
                     if (!isset($users[$username])) {
                         $users[$username] = $user;
