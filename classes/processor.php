@@ -269,7 +269,7 @@ class tool_downloaddata_processor {
         $courses = get_courses();
         // Ignoring course Moodle.
         foreach ($courses as $key => $course) {
-            if ($course->shortname == 'moodle') {
+            if (core_text::strtolower($course->shortname) == 'moodle') {
                 unset($courses[$key]);
                 break;
             }
