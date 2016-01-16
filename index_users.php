@@ -29,7 +29,7 @@ require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once(__DIR__ . '/locallib.php');
 
-core_php_time_limit::raise(60*60); // 1 hour
+core_php_time_limit::raise(60 * 60);    // 1 hour.
 raise_memory_limit(MEMORY_HUGE);
 
 require_login();
@@ -78,8 +78,8 @@ if (empty($options)) {
         try {
             $processor->prepare();
         } catch (Exception $e) {
-			$e->link = $returnurl;
-			throw $e;
+            $e->link = $returnurl;
+            throw $e;
         }
         $processor->download();
     } else {

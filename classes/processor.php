@@ -213,7 +213,7 @@ class tool_downloaddata_processor {
                     $this->profilefields[] = $profilefieldname;
                 }
             }
-            $validationresult  =$this->validate_user_fields();
+            $validationresult = $this->validate_user_fields();
             if ($validationresult !== true) {
                 throw new moodle_exception('invalidfield', 'tool_downloaddata', '', $validationresult);
             }
@@ -351,7 +351,7 @@ class tool_downloaddata_processor {
         }
         $csv->add_data($fields);
 
-        // Saving courses
+        // Saving courses.
         foreach ($this->contents as $key => $course) {
             $row = array();
             foreach ($fields as $key => $field) {
@@ -477,7 +477,7 @@ class tool_downloaddata_processor {
         // Constructing the requested user fields.
         $userfields = array();
         foreach ($this->fields as $field) {
-			$userfields[] = 'u.' . $field;
+            $userfields[] = 'u.' . $field;
         }
         $userfields = implode(',', $userfields);
 
