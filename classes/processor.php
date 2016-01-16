@@ -83,7 +83,7 @@ class tool_downloaddata_processor {
     protected $fields;
 
     /** @var string[] Valid course fields. */
-    protected $validcoursefields = array( 'shortname', 'fullname', 'idnumber',
+    protected static $validcoursefields = array( 'shortname', 'fullname', 'idnumber',
         'category', 'category_idnumber', 'category_path', 'visible',
         'startdate', 'summary', 'format', 'theme', 'lang', 'newsitems',
         'showgrades', 'showreports', 'legacyfiles', 'maxbytes', 'groupmode',
@@ -91,16 +91,13 @@ class tool_downloaddata_processor {
     );
 
     /** @var string[] Standard user fields. */
-    protected $standarduserfields = array('id', 'username', 'email', 'city',
+    protected static $standarduserfields = array('id', 'username', 'email', 'city',
         'country', 'lang', 'timezone', 'mailformat', 'maildisplay',
         'maildigest', 'autosubscribe', 'institution',
         'department', 'idnumber', 'skype', 'msn', 'aim', 'yahoo', 'icq',
         'phone1', 'phone2', 'address', 'url', 'description',
         'descriptionformat', 'auth'
     );
-
-    /** @var string[] User profile fields. */
-    protected $profilefields = array();
 
     /** @var string[] Fields to be overridden. */
     protected $overrides;
@@ -179,6 +176,43 @@ class tool_downloaddata_processor {
     }
 
     /**
+     * Get the valid course fields.
+     *
+     * @return string[] Numerically indexed array of course fields.
+     */
+    public static function get_valid_course_fields() {
+        return self::$validcoursefields;
+    }
+
+    /**
+     * Get the valid user fields.
+     *
+     * @return string[] Numerically indexed array of user fields.
+     */
+    public static function get_valid_user_fields() {
+        $fields = array_merge(self::$standarduserfields, get_all_user_name_fields());
+        return $fields;
+    }
+
+    /**
+     * Get the user profile fields.
+     *
+     * @return string[] Numerically indexed array of user profile fields.
+     */
+    public static function get_profile_fields() {
+        global $DB;
+        $fields = array();
+        if ($proffields = $DB->get_records('user_info_field')) {
+            foreach ($proffields as $key => $proffield) {
+                $profilefieldname = 'profile_field_'.$proffield->shortname;
+                $ret[] = $profilefieldname;
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
      * Prepare the file to be downloaded.
      *
      * @throws coding_exception | moodle_exception.
@@ -196,7 +230,6 @@ class tool_downloaddata_processor {
             if ($validationresult !== true) {
                 throw new moodle_exception('invalidfield', 'tool_downloaddata', '', $validationresult);
             }
-
             $this->contents = $this->get_courses();
             if ($this->format == self::FORMAT_CSV) {
                 $this->fileobject = $this->save_courses_to_csv();
@@ -205,14 +238,6 @@ class tool_downloaddata_processor {
             }
 
         } else if ($this->coursesorusers === self::DATA_USERS) {
-            $this->standarduserfields = array_merge($this->standarduserfields, get_all_user_name_fields());
-            // Getting profile fields.
-            if ($proffields = $DB->get_records('user_info_field')) {
-                foreach ($proffields as $key => $proffield) {
-                    $profilefieldname = 'profile_field_'.$proffield->shortname;
-                    $this->profilefields[] = $profilefieldname;
-                }
-            }
             $validationresult = $this->validate_user_fields();
             if ($validationresult !== true) {
                 throw new moodle_exception('invalidfield', 'tool_downloaddata', '', $validationresult);
@@ -515,7 +540,7 @@ class tool_downloaddata_processor {
      * Validate and process specified user roles.
      *
      * @throws moodle_exception.
-     * @return string[] $roles Numerically indexed array of roles.
+     * @return string[] Numerically indexed array of roles.
      */
     protected function resolve_roles() {
         $this->rolescache = array();
@@ -653,8 +678,9 @@ class tool_downloaddata_processor {
      * @return bool|string True if validation passes, the invalid field otherwise
      */
     protected function validate_course_fields() {
+        $validcoursefields = self::get_valid_course_fields();
         foreach ($this->fields as $field) {
-            if (!in_array($field, $this->validcoursefields, true)) {
+            if (!in_array($field, $validcoursefields, true)) {
                 return $field;
             }
         }
@@ -668,21 +694,23 @@ class tool_downloaddata_processor {
      * @return bool|string True if validation passes, the invalid field otherwise
      */
     protected function validate_user_fields() {
+        $validuserfields = self::get_valid_user_fields();
+        $profilefields = self::get_profile_fields();
         $processed = array();
         foreach ($this->fields as $key => $field) {
             $lcfield = core_text::strtolower($field);
             $processedfield = null;
 
-            if (in_array($field, $this->standarduserfields) ||
-                    in_array($lcfield, $this->standarduserfields)) {
+            if (in_array($field, $validuserfields) ||
+                    in_array($lcfield, $validuserfields)) {
                 // Standard fields are only lowercase.
                 $processedfield = $lcfield;
 
-            } else if (in_array($field, $this->profilefields)) {
+            } else if (in_array($field, $profilefields)) {
                 // Exact profile field name match - these are case sensitive.
                 $processedfield = $field;
 
-            } else if (in_array($lcfield, $this->profilefields)) {
+            } else if (in_array($lcfield, $profilefields)) {
                 // Hack: somebody wrote uppercase, but the system knows only lowercase profile field.
                 $processedfield = $lcfield;
             }
