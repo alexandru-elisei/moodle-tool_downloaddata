@@ -64,3 +64,24 @@ function tool_downloaddata_process_fields($rawfields) {
 
     return $processedfields;
 }
+
+/**
+ * Returns a list of all possible roles that can be requested.
+ *
+ * @return string[] Numerically indexed array of all possible requested roles.
+ */
+function tool_downloaddata_get_all_requested_roles() {
+    $allroles = get_all_roles();
+    $roles = array();
+    foreach ($allroles as $key => $role) {
+        // Ignoring system roles.
+        $isguest = ($role->shortname == 'guest');
+        $isfrontpage = ($role->shortname == 'frontpage');
+        $isadmin = ($role->shortname == 'admin');
+        if (!$isguest && !$isfrontpage && !$isadmin) {
+            $roles[] = $role->shortname;
+        }
+    }
+
+    return $roles;
+}

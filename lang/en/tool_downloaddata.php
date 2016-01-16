@@ -21,6 +21,11 @@
  * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+$string['available'] = 'Available';
+$string['addallfields'] = 'Add all fields';
+$string['addallroles'] = 'Add all roles';
+$string['addfieldselection'] = 'Add fields to selection';
+$string['addroleselection'] = 'Add roles to selection';
 $string['cliunknownoption'] = 'Unknown cli script parameter';
 $string['csvdelimiter'] = 'CSV delimiter';
 $string['download'] = 'Download';
@@ -31,7 +36,7 @@ $string['emptyroles'] = 'No roles specified';
 $string['emptyoverrides'] = 'No overrides specified';
 $string['encoding'] = 'Encoding';
 $string['fields'] = 'Fields';
-$string['fields_help'] = 'Enter the fields to download, as a comma separated list. Must supply valid fields. Overrides the default fields from DOWNLOADDATA_PLUGIN_DIRECTORY/config.php.';
+$string['fields_help'] = 'Select the fields to download. The default fields are located in DOWNLOADDATA_PLUGIN_DIRECTORY/config.php.';
 $string['filenotprepared'] = 'File not prepared';
 $string['format'] = 'File format';
 $string['formatcsv'] = 'Comma separated values (.csv)';
@@ -42,12 +47,19 @@ $string['invalidfield'] = 'Invalid field "{$a}"';
 $string['invalidencoding'] = 'Invalid encoding';
 $string['invalidformat'] = 'Invalid format';
 $string['invalidrole'] = 'Invalid role "{$a}"';
+$string['noselectedfields'] = 'No fields selected';
+$string['noselectedroles'] = 'No roles selected';
 $string['overrides'] = 'Overrides';
 $string['overrides_help'] = 'Enter the fields to override, as a comma-separated list of field=override pairs. Overrides the default overrides from DOWNLOADDATA_PLUGIN_DIRECTORY/config.php.';
 $string['processstarted'] = 'Process already started';
 $string['pluginname'] = 'Download courses and users by role';
+$string['removeallfields'] = 'Remove all fields';
+$string['removeallroles'] = 'Remove all roles';
+$string['removefieldselection'] = 'Remove fields from selection';
+$string['removeroleselection'] = 'Remove roles from selection';
 $string['roles'] = 'Roles';
-$string['roles_help'] = "Download users who have the specified role. If a user has more than one role, only the requested role will be printed. If you want a list of users with all their roles, choose 'All'";
+$string['roles_help'] = 'Download users who have the specified roles. If a user has more than one role, only the requested roles will be saved';
+$string['selected'] = 'Selected';
 $string['sortbycategorypath'] = 'Sort by category path';
 $string['sortbycategorypath_help'] = "'Sort courses in alphabetic order by category path. Useful if using different paths similar to 'Year 1 / Semester 1', 'Year 1 / Semester 2' and so on.";
 $string['usedefaults'] = 'Use defaults';

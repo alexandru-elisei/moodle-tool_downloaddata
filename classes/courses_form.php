@@ -40,6 +40,13 @@ class tool_downloaddata_courses_form extends moodleform {
      */
     public function definition () {
         $mform = $this->_form;
+        $selectedfields = $this->_customdata['selectedfields'];
+        $fields = tool_downloaddata_processor::get_valid_course_fields();
+
+        if (empty($selectedfields)) {
+            $selectedfields = array(get_string('noselectedfields', 'tool_downloaddata'));
+        }
+
         $mform->addElement('header', 'generalhdr', get_string('downloadcourses', 'tool_downloaddata'));
 
         $formatchoices = array(
@@ -80,21 +87,38 @@ class tool_downloaddata_courses_form extends moodleform {
         $mform->addHelpButton('sortbycategorypath', 'sortbycategorypath', 'tool_downloaddata');
 
         $mform->addElement('header', 'fieldshdr', get_string('fields', 'tool_downloaddata'));
-        $mform->setExpanded('fieldshdr', false);
+        $mform->setExpanded('fieldshdr', true);
 
-        $mform->addElement('textarea', 'fields', get_string('fields', 'tool_downloaddata'),
-                           'wrap="virtual" rows="4" cols="40"');
-        $mform->setType('fields', PARAM_RAW);
-        $mform->addHelpButton('fields', 'fields', 'tool_downloaddata');
+        // Creating the field selection elements.
+        $objs = array();
+        $objs[0] = $mform->createElement('select', 'availablefields', get_string('available', 'tool_downloaddata'),
+                                         $fields, 'size="10"');
+        $objs[0]->setMultiple(true);
+        $objs[1] = $mform->createElement('select', 'selectedfields', get_string('selected', 'tool_downloaddata'),
+                                         $selectedfields, 'size="10"');
+        $objs[1]->setMultiple(true);
+        $group = $mform->addElement('group', 'fieldsgroup', get_string('fields', 'tool_downloaddata'), $objs, '  ', false);
+        $mform->addHelpButton('fieldsgroup', 'fields', 'tool_downloaddata');
+
+        // Creating the buttons for the field selection elements.
+        $objs = array();
+        $objs[] = $mform->createElement('submit', 'addfieldselection', get_string('addfieldselection', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'removefieldselection', get_string('removefieldselection', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'addallfields', get_string('addallfields', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'removeallfields', get_string('removeallfields', 'tool_downloaddata'));
+        $group = $mform->addElement('group', 'buttonsgroup', '', $objs, array(' ', '<br/>'), false);
 
         $mform->addElement('header', 'overrideshdr', get_string('overrides', 'tool_downloaddata'));
         $mform->setExpanded('overrideshdr', false);
 
         $mform->addElement('textarea', 'overrides', get_string('overrides', 'tool_downloaddata'),
-                           'wrap="virtual" rows="4" cols="40"');
+                           'wrap="virtual" rows="3" cols="45"');
         $mform->setType('overrides', PARAM_RAW);
         $mform->addHelpButton('overrides', 'overrides', 'tool_downloaddata');
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
+
+        $template = '<label class="qflabel" style="vertical-align:top">{label}</label> {element}';
+        $mform->defaultRenderer()->setGroupElementTemplate($template, 'fieldsgroup');
     }
 }

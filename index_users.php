@@ -28,8 +28,9 @@ require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once(__DIR__ . '/locallib.php');
+require_once(__DIR__ . '/config.php');
 
-core_php_time_limit::raise(60 * 60);    // 1 hour.
+core_php_time_limit::raise(6 * 60 * 60);    // 6 hours.
 raise_memory_limit(MEMORY_HUGE);
 
 require_login();
@@ -37,39 +38,106 @@ admin_externalpage_setup('tooldownloaddata_users');
 
 $returnurl = new moodle_url('/admin/tool/downloaddata/index_users.php');
 
-if (empty($options)) {
-    $mform1 = new tool_downloaddata_users_form();
-    // Downloading data.
-    if ($formdata = $mform1->get_data()) {
+if (!isset($SESSION->customdata)) {
+    $SESSION->customdata = array();
+    $SESSION->customdata['selectedroles'] = array();
+    // Adding the default user fields to the selected fields.
+    $SESSION->customdata['selectedfields'] = tool_downloaddata_config::$userfields;
+}
+
+$mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
+
+if ($formdata = $mform->get_data()) {
+    // Adding all the valid fields.
+    if (!empty($formdata->addallfields)) {
+        $SESSION->customdata['selectedfields'] = tool_downloaddata_processor::get_valid_course_fields();
+
+    // Removing all the selected fields.
+    } else if (!empty($formdata->removeallfields)) {
+        $SESSION->customdata['selectedfields'] = array();
+
+    // Adding the selected fields.
+    } else if (!empty($formdata->addfieldselection)) {
+        if (!empty($formdata->availablefields)) {
+            $validfields = tool_downloaddata_processor::get_valid_course_fields();
+            foreach ($formdata->availablefields as $fieldindex) {
+                $field = $validfields[intval($fieldindex)];
+                if (!in_array($field, $SESSION->customdata['selectedfields'])) {
+                    $SESSION->customdata['selectedfields'][] = $field;
+                }
+            }
+        }
+
+    // Removing the selected fields.
+    } else if (!empty($formdata->removefieldselection)) {
+        if (!empty($formdata->selectedfields) && !empty($SESSION->customdata['selectedfields'])) {
+            foreach($formdata->selectedfields as $fieldindex) {
+                unset($SESSION->customdata['selectedfields'][intval($fieldindex)]);
+            }
+        }
+
+    // Adding all the roles.
+    } else if (!empty($formdata->addallroles)) {
+        $SESSION->customdata['selectedroles'] = tool_downloaddata_get_all_requested_roles();
+
+    // Removing all the selected roles.
+    } else if (!empty($formdata->removeallroles)) {
+        $SESSION->customdata['selectedroles'] = array();
+
+    // Adding the selected roles.
+    } else if (!empty($formdata->addroleselection)) {
+        if (!empty($formdata->availableroles)) {
+            $allroles = tool_downloaddata_get_all_requested_roles();
+            foreach ($formdata->availableroles as $roleindex) {
+                $role = $allroles[intval($roleindex)];
+                if (!in_array($role, $SESSION->customdata['selectedroles'])) {
+                    $SESSION->customdata['selectedroles'][] = $role;
+                }
+            }
+        }
+
+    // Removing the selected roles.
+    } else if (!empty($formdata->removeroleselection)) {
+        if (!empty($formdata->selectedroles) && !empty($SESSION->customdata['selectedroles'])) {
+            foreach($formdata->selectedroles as $roleindex) {
+                unset($SESSION->customdata['selectedroles'][intval($roleindex)]);
+            }
+        }
+
+    // Downloading the users.
+    } else {
         $options = array();
         $options['format'] = $formdata->format;
         $options['data'] = tool_downloaddata_processor::DATA_USERS;
         $options['encoding'] = $formdata->encoding;
-        $options['roles'] = $formdata->roles;
         $options['usedefaults'] = ($formdata->usedefaults == 'true');
         $options['useoverrides'] = ($formdata->useoverrides == 'true');
         $options['sortbycategorypath'] = false;
         $options['delimiter'] = $formdata->delimiter_name;
 
-        if (!empty($formdata->fields)) {
-            $fields = tool_downloaddata_process_fields($formdata->fields);
-        } else if ($options['usedefaults']) {
-            $fields = tool_downloaddata_config::$userfields;
+        if (!empty($SESSION->customdata['selectedfields'])) {
+            $fields = $SESSION->customdata['selectedfields'];
+        } else {
+            throw new moodle_exception('emptyfields', 'tool_downloaddata', $returnurl);
         }
+
+        if (!empty($SESSION->customdata['selectedroles'])) {
+            $options['roles'] = implode(',', $SESSION->customdata['selectedroles']);
+        } else {
+            throw new moodle_exception('emptyroles', 'tool_downloaddata', $returnurl);
+        }
+        unset($SESSION->customdata);
 
         if ($options['useoverrides']) {
             if (!empty($formdata->overrides)) {
                 $overrides = tool_downloaddata_process_overrides($formdata->overrides);
             } else if ($options['usedefaults']) {
-                $overrides = tool_downloaddata_config::$useroverrides;
+                $overrides = tool_downloaddata_config::$courseoverrides;
             }
         } else {
             $overrides = array();
         }
 
-        if (empty($fields)) {
-            throw new moodle_exception('emptyfields', 'tool_downloaddata', $returnurl);
-        }
         if ($options['useoverrides'] && empty($overrides)) {
             throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
         }
@@ -82,13 +150,16 @@ if (empty($options)) {
             throw $e;
         }
         $processor->download();
-    } else {
-        // Printing the form.
-        echo $OUTPUT->header();
-        $mform1->display();
-        echo $OUTPUT->footer();
-        die();
     }
+
+    unset($_POST);
+    $mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
+} else {
+    // Removing session data on a page refresh.
+    unset($SESSION->customdata);
 }
 
-die();
+echo $OUTPUT->header();
+$errors = null;
+$mform->display();
+echo $OUTPUT->footer();

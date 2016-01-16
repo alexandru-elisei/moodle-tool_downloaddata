@@ -27,7 +27,8 @@ require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->libdir . '/filelib.php');
-require(__DIR__ . '/locallib.php');
+require_once(__DIR__ . '/locallib.php');
+require_once(__DIR__ . '/config.php');
 
 core_php_time_limit::raise(60 * 60); // 1 hour.
 raise_memory_limit(MEMORY_HUGE);
@@ -37,11 +38,46 @@ admin_externalpage_setup('tooldownloaddata_courses');
 
 $returnurl = new moodle_url('/admin/tool/downloaddata/index_courses.php');
 
-if (empty($options)) {
-    $mform1 = new tool_downloaddata_courses_form();
+if (!isset($SESSION->customdata)) {
+    $SESSION->customdata = array();
+    // Adding the default course fields to the selected fields.
+    $SESSION->customdata['selectedfields'] = tool_downloaddata_config::$coursefields;
 
-    // Downloading data.
-    if ($formdata = $mform1->get_data()) {
+}
+
+$mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
+
+if ($formdata = $mform->get_data()) {
+    // Adding all the valid fields.
+    if (!empty($formdata->addallfields)) {
+        $SESSION->customdata['selectedfields'] = tool_downloaddata_processor::get_valid_course_fields();
+
+    // Removing all the selected fields.
+    } else if (!empty($formdata->removeallfields)) {
+        $SESSION->customdata['selectedfields'] = array();
+
+    // Adding the selected fields.
+    } else if (!empty($formdata->addfieldselection)) {
+        if (!empty($formdata->availablefields)) {
+            $validfields = tool_downloaddata_processor::get_valid_course_fields();
+            foreach ($formdata->availablefields as $fieldindex) {
+                $field = $validfields[intval($fieldindex)];
+                if (!in_array($field, $SESSION->customdata['selectedfields'])) {
+                    $SESSION->customdata['selectedfields'][] = $field;
+                }
+            }
+        }
+
+    // Removing the selected fields.
+    } else if (!empty($formdata->removefieldselection)) {
+        if (!empty($formdata->selectedfields) && !empty($SESSION->customdata['selectedfields'])) {
+            foreach($formdata->selectedfields as $fieldindex) {
+                unset($SESSION->customdata['selectedfields'][intval($fieldindex)]);
+            }
+        }
+
+    // Downloading the courses.
+    } else {
         $options = array();
         $options['format'] = $formdata->format;
         $options['data'] = tool_downloaddata_processor::DATA_COURSES;
@@ -52,11 +88,12 @@ if (empty($options)) {
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;
 
-        if (!empty($formdata->fields)) {
-            $fields = tool_downloaddata_process_fields($formdata->fields);
-        } else if ($options['usedefaults']) {
-            $fields = tool_downloaddata_config::$coursefields;
+        if (!empty($SESSION->customdata['selectedfields'])) {
+            $fields = $SESSION->customdata['selectedfields'];
+        } else {
+            throw new moodle_exception('emptyfields', 'tool_downloaddata', $returnurl);
         }
+        unset($SESSION->customdata);
 
         if ($options['useoverrides']) {
             if (!empty($formdata->overrides)) {
@@ -68,9 +105,6 @@ if (empty($options)) {
             $overrides = array();
         }
 
-        if (empty($fields)) {
-            throw new moodle_exception('emptyfields', 'tool_downloaddata', $returnurl);
-        }
         if ($options['useoverrides'] && empty($overrides)) {
             throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
         }
@@ -83,14 +117,16 @@ if (empty($options)) {
             throw $e;
         }
         $processor->download();
-    } else {
-        // Printing the form.
-        echo $OUTPUT->header();
-        $errors = null;
-        $mform1->display();
-        echo $OUTPUT->footer();
-        die();
     }
+
+    unset($_POST);
+    $mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
+} else {
+    // Removing session data on a page refresh.
+    unset($SESSION->customdata);
 }
 
-die;
+echo $OUTPUT->header();
+$errors = null;
+$mform->display();
+echo $OUTPUT->footer();

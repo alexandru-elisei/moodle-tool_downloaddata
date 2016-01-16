@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
+require_once(__DIR__ . '/../locallib.php');
 
 /**
  * Download users form.
@@ -40,23 +41,20 @@ class tool_downloaddata_users_form extends moodleform {
      */
     public function definition () {
         $mform = $this->_form;
-        $mform->addElement('header', 'generalhdr', get_string('downloadusersbyrole', 'tool_downloaddata'));
+        $selectedfields = $this->_customdata['selectedfields'];
+        $selectedroles = $this->_customdata['selectedroles'];
+        $fields = array_merge(tool_downloaddata_processor::get_valid_user_fields(),
+                              tool_downloaddata_processor::get_profile_fields());
+        $roles = tool_downloaddata_get_all_requested_roles();
 
-        $allroles = get_all_roles();
-        $roles = array();
-        foreach ($allroles as $key => $role) {
-            // Ignoring system roles.
-            $isguest = ($role->shortname == 'guest');
-            $isfrontpage = ($role->shortname == 'frontpage');
-            $isadmin = ($role->shortname == 'admin');
-            if (!$isguest && !$isfrontpage && !$isadmin) {
-                $roles[$role->shortname] = $role->shortname;
-            }
+        if (empty($selectedfields)) {
+            $selectedfields = array(get_string('noselectedfields', 'tool_downloaddata'));
         }
-        $roles['all'] = 'All';
-        $mform->addElement('select', 'roles', get_string('roles', 'tool_downloaddata'), $roles);
-        $mform->setDefault('roles', 'editingteacher');
-        $mform->addHelpButton('roles', 'roles', 'tool_downloaddata');
+        if (empty($selectedroles)) {
+            $selectedroles = array(get_string('noselectedroles', 'tool_downloaddata'));
+        }
+
+        $mform->addElement('header', 'generalhdr', get_string('downloadusersbyrole', 'tool_downloaddata'));
 
         $formatchoices = array(
             tool_downloaddata_processor::FORMAT_CSV => get_string('formatcsv', 'tool_downloaddata'),
@@ -89,22 +87,58 @@ class tool_downloaddata_users_form extends moodleform {
         $mform->addHelpButton('useoverrides', 'useoverrides', 'tool_downloaddata');
         $mform->setDefault('useoverrides', 'false');
 
-        $mform->addElement('header', 'fieldshdr', get_string('fields', 'tool_downloaddata'));
-        $mform->setExpanded('fieldshdr', false);
+        // Creating the role selection elements.
+        $mform->addElement('header', 'roleshdr', get_string('roles', 'tool_downloaddata'));
+        $mform->setExpanded('roleshdr', true);
+        $objs = array();
+        $objs[0] = $mform->createElement('select', 'availableroles', get_string('available', 'tool_downloaddata'),
+                                         $roles, 'size="7"');
+        $objs[0]->setMultiple(true);
+        $objs[1] = $mform->createElement('select', 'selectedroles', get_string('selected', 'tool_downloaddata'),
+                                         $selectedroles, 'size="7"');
+        $objs[1]->setMultiple(true);
+        $group = $mform->addElement('group', 'rolesgroup', get_string('roles', 'tool_downloaddata'), $objs, '  ', false);
+        $mform->addHelpButton('rolesgroup', 'roles', 'tool_downloaddata');
+        // Creating the buttons for role the selection elements.
+        $objs = array();
+        $objs[] = $mform->createElement('submit', 'addroleselection', get_string('addroleselection', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'removeroleselection', get_string('removeroleselection', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'addallroles', get_string('addallroles', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'removeallroles', get_string('removeallroles', 'tool_downloaddata'));
+        $group = $mform->addElement('group', 'rolesbuttonsgroup', '', $objs, array(' ', '<br/>'), false);
 
-        $mform->addElement('textarea', 'fields', get_string('fields', 'tool_downloaddata'),
-                           'wrap="virtual" rows="4" cols="40"');
-        $mform->setType('fields', PARAM_RAW);
-        $mform->addHelpButton('fields', 'fields', 'tool_downloaddata');
+        // Creating the field selection elements.
+        $mform->addElement('header', 'fieldshdr', get_string('fields', 'tool_downloaddata'));
+        $mform->setExpanded('fieldshdr', true);
+        $objs = array();
+        $objs[0] = $mform->createElement('select', 'availablefields', get_string('available', 'tool_downloaddata'),
+                                         $fields, 'size="10"');
+        $objs[0]->setMultiple(true);
+        $objs[1] = $mform->createElement('select', 'selectedfields', get_string('selected', 'tool_downloaddata'),
+                                         $selectedfields, 'size="10"');
+        $objs[1]->setMultiple(true);
+        $group = $mform->addElement('group', 'fieldsgroup', get_string('fields', 'tool_downloaddata'), $objs, '  ', false);
+        $mform->addHelpButton('fieldsgroup', 'fields', 'tool_downloaddata');
+        // Creating the buttons for the field selection elements.
+        $objs = array();
+        $objs[] = $mform->createElement('submit', 'addfieldselection', get_string('addfieldselection', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'removefieldselection', get_string('removefieldselection', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'addallfields', get_string('addallfields', 'tool_downloaddata'));
+        $objs[] = $mform->createElement('submit', 'removeallfields', get_string('removeallfields', 'tool_downloaddata'));
+        $group = $mform->addElement('group', 'fieldsbuttonsgroup', '', $objs, array(' ', '<br/>'), false);
 
         $mform->addElement('header', 'overrideshdr', get_string('overrides', 'tool_downloaddata'));
         $mform->setExpanded('overrideshdr', false);
 
         $mform->addElement('textarea', 'overrides', get_string('overrides', 'tool_downloaddata'),
-                           'wrap="virtual" rows="4" cols="40"');
+                           'wrap="virtual" rows="3" cols="45"');
         $mform->setType('overrides', PARAM_RAW);
         $mform->addHelpButton('overrides', 'overrides', 'tool_downloaddata');
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
+        
+        $template = '<label class="qflabel" style="vertical-align:top">{label}</label> {element}';
+        $mform->defaultRenderer()->setGroupElementTemplate($template, 'fieldsgroup');
+        $mform->defaultRenderer()->setGroupElementTemplate($template, 'rolesgroup');
     }
 }
