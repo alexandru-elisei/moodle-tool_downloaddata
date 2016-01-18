@@ -68,12 +68,6 @@ class tool_downloaddata_courses_form extends moodleform {
         $mform->setDefault('delimiter_name', 'comma');
         $mform->disabledIf('delimiter_name', 'format', 'noteq', tool_downloaddata_processor::FORMAT_CSV);
 
-        $usedefaults = array('true' => 'Yes', 'false' => 'No');
-        $mform->addElement('select', 'usedefaults',
-                           get_string('usedefaults', 'tool_downloaddata'), $usedefaults);
-        $mform->addHelpButton('usedefaults', 'usedefaults', 'tool_downloaddata');
-        $mform->setDefault('usedefaults', 'true');
-
         $useoverrides = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'useoverrides',
                            get_string('useoverrides', 'tool_downloaddata'), $useoverrides);

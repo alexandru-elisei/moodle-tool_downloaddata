@@ -59,7 +59,8 @@ if ($formdata = $mform->get_data()) {
     // Adding the selected fields.
     } else if (!empty($formdata->addfieldselection)) {
         if (!empty($formdata->availablefields)) {
-            $validfields = tool_downloaddata_processor::get_valid_course_fields();
+            $validfields = array_merge(tool_downloaddata_processor::get_valid_user_fields(),
+                                       tool_downloaddata_processor::get_profile_fields());
             foreach ($formdata->availablefields as $fieldindex) {
                 $field = $validfields[intval($fieldindex)];
                 if (!in_array($field, $SESSION->customdata['selectedfields'])) {
@@ -78,7 +79,7 @@ if ($formdata = $mform->get_data()) {
 
     // Adding all the roles.
     } else if (!empty($formdata->addallroles)) {
-        $SESSION->customdata['selectedroles'] = tool_downloaddata_get_all_requested_roles();
+        $SESSION->customdata['selectedroles'] = tool_downloaddata_processor::get_all_valid_roles();
 
     // Removing all the selected roles.
     } else if (!empty($formdata->removeallroles)) {
@@ -87,7 +88,7 @@ if ($formdata = $mform->get_data()) {
     // Adding the selected roles.
     } else if (!empty($formdata->addroleselection)) {
         if (!empty($formdata->availableroles)) {
-            $allroles = tool_downloaddata_get_all_requested_roles();
+            $allroles = tool_downloaddata_processor::get_all_valid_roles();
             foreach ($formdata->availableroles as $roleindex) {
                 $role = $allroles[intval($roleindex)];
                 if (!in_array($role, $SESSION->customdata['selectedroles'])) {
@@ -110,7 +111,7 @@ if ($formdata = $mform->get_data()) {
         $options['format'] = $formdata->format;
         $options['data'] = tool_downloaddata_processor::DATA_USERS;
         $options['encoding'] = $formdata->encoding;
-        $options['usedefaults'] = ($formdata->usedefaults == 'true');
+        $options['usedefaults'] = false;
         $options['useoverrides'] = ($formdata->useoverrides == 'true');
         $options['sortbycategorypath'] = false;
         $options['delimiter'] = $formdata->delimiter_name;
@@ -126,7 +127,6 @@ if ($formdata = $mform->get_data()) {
         } else {
             throw new moodle_exception('emptyroles', 'tool_downloaddata', $returnurl);
         }
-        unset($SESSION->customdata);
 
         if ($options['useoverrides']) {
             if (!empty($formdata->overrides)) {
@@ -155,8 +155,11 @@ if ($formdata = $mform->get_data()) {
     unset($_POST);
     $mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
 } else {
+    // Adding the default user fields to the selected fields.
+    $SESSION->customdata['selectedfields'] = tool_downloaddata_config::$userfields;
     // Removing session data on a page refresh.
-    unset($SESSION->customdata);
+    $SESSION->customdata['selectedroles'] = array();
+    $mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
 }
 
 echo $OUTPUT->header();

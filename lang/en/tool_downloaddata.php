@@ -62,7 +62,5 @@ $string['roles_help'] = 'Download users who have the specified roles. If a user 
 $string['selected'] = 'Selected';
 $string['sortbycategorypath'] = 'Sort by category path';
 $string['sortbycategorypath_help'] = "'Sort courses in alphabetic order by category path. Useful if using different paths similar to 'Year 1 / Semester 1', 'Year 1 / Semester 2' and so on.";
-$string['usedefaults'] = 'Use defaults';
-$string['usedefaults_help'] = 'Use the default values from DOWNLOADDATA_PLUGIN_DIRECTORY/config.php.';
 $string['useoverrides'] = 'Override fields';
 $string['useoverrides_help'] = "This allows specific fields to be overridden. The field will be created if it's not part of the requested fields. Requires override fields to be specified, either via the default values from DOWNLOADDATA_PLUGIN_DIRECTORY/config.php or manually in the 'Overrides' section.";

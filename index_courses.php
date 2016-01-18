@@ -83,7 +83,7 @@ if ($formdata = $mform->get_data()) {
         $options['data'] = tool_downloaddata_processor::DATA_COURSES;
         $options['encoding'] = $formdata->encoding;
         $options['roles'] = array();
-        $options['usedefaults'] = ($formdata->usedefaults == 'true');
+        $options['usedefaults'] = false;
         $options['useoverrides'] = ($formdata->useoverrides == 'true');
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
         $options['delimiter'] = $formdata->delimiter_name;
@@ -93,7 +93,6 @@ if ($formdata = $mform->get_data()) {
         } else {
             throw new moodle_exception('emptyfields', 'tool_downloaddata', $returnurl);
         }
-        unset($SESSION->customdata);
 
         if ($options['useoverrides']) {
             if (!empty($formdata->overrides)) {
@@ -122,8 +121,9 @@ if ($formdata = $mform->get_data()) {
     unset($_POST);
     $mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
 } else {
-    // Removing session data on a page refresh.
-    unset($SESSION->customdata);
+    // Adding the default course fields to the selected fields.
+    $SESSION->customdata['selectedfields'] = tool_downloaddata_config::$coursefields;
+    $mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
 }
 
 echo $OUTPUT->header();

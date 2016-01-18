@@ -45,7 +45,7 @@ class tool_downloaddata_users_form extends moodleform {
         $selectedroles = $this->_customdata['selectedroles'];
         $fields = array_merge(tool_downloaddata_processor::get_valid_user_fields(),
                               tool_downloaddata_processor::get_profile_fields());
-        $roles = tool_downloaddata_get_all_requested_roles();
+        $roles = tool_downloaddata_processor::get_all_valid_roles();
 
         if (empty($selectedfields)) {
             $selectedfields = array(get_string('noselectedfields', 'tool_downloaddata'));
@@ -74,12 +74,6 @@ class tool_downloaddata_users_form extends moodleform {
                            get_string('csvdelimiter', 'tool_downloaddata'), $delimiters);
         $mform->setDefault('delimiter_name', 'comma');
         $mform->disabledIf('delimiter_name', 'format', 'noteq', tool_downloaddata_processor::FORMAT_CSV);
-
-        $usedefaults = array('true' => 'Yes', 'false' => 'No');
-        $mform->addElement('select', 'usedefaults',
-                           get_string('usedefaults', 'tool_downloaddata'), $usedefaults);
-        $mform->addHelpButton('usedefaults', 'usedefaults', 'tool_downloaddata');
-        $mform->setDefault('usedefaults', 'true');
 
         $useoverrides = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'useoverrides',

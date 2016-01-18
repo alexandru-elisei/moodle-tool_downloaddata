@@ -176,43 +176,6 @@ class tool_downloaddata_processor {
     }
 
     /**
-     * Get the valid course fields.
-     *
-     * @return string[] Numerically indexed array of course fields.
-     */
-    public static function get_valid_course_fields() {
-        return self::$validcoursefields;
-    }
-
-    /**
-     * Get the valid user fields.
-     *
-     * @return string[] Numerically indexed array of user fields.
-     */
-    public static function get_valid_user_fields() {
-        $fields = array_merge(self::$standarduserfields, get_all_user_name_fields());
-        return $fields;
-    }
-
-    /**
-     * Get the user profile fields.
-     *
-     * @return string[] Numerically indexed array of user profile fields.
-     */
-    public static function get_profile_fields() {
-        global $DB;
-        $fields = array();
-        if ($proffields = $DB->get_records('user_info_field')) {
-            foreach ($proffields as $key => $proffield) {
-                $profilefieldname = 'profile_field_'.$proffield->shortname;
-                $ret[] = $profilefieldname;
-            }
-        }
-
-        return $fields;
-    }
-
-    /**
      * Prepare the file to be downloaded.
      *
      * @throws coding_exception | moodle_exception.
@@ -545,22 +508,15 @@ class tool_downloaddata_processor {
     protected function resolve_roles() {
         $this->rolescache = array();
         $allroles = get_all_roles();
-        // Building roles cache.
+
+        // Building the roles cache.
         foreach ($allroles as $key => $role) {
             $this->rolescache[$role->shortname] = $role->id;
         }
 
         // Returning all roles.
         if ($this->requestedroles == 'all') {
-            $ret = array();
-            foreach ($allroles as $key => $role) {
-                $isguest = ($role->shortname == 'guest');
-                $isfrontpage = ($role->shortname == 'frontpage');
-                $isadmin = ($role->shortname == 'admin');
-                if (!$isguest && !$isfrontpage && !$isadmin) {
-                    $ret[] = $role->shortname;
-                }
-            }
+            $ret = self::get_all_valid_roles();
         } else {
             $ret = explode(',', $this->requestedroles);
             // Checking for invalid roles.
@@ -726,5 +682,66 @@ class tool_downloaddata_processor {
         $this->fields = $processed;
 
         return true;
+    }
+
+    /**
+     * Get the valid course fields.
+     *
+     * @return string[] Numerically indexed array of course fields.
+     */
+    public static function get_valid_course_fields() {
+        return self::$validcoursefields;
+    }
+
+    /**
+     * Get the valid user fields.
+     *
+     * @return string[] Numerically indexed array of user fields.
+     */
+    public static function get_valid_user_fields() {
+        $otherfields = get_all_user_name_fields();
+        // get_all_user_name_fields() returns a dictionary, not a numerically indexed array.
+        $otherfields = array_values($otherfields);
+        $fields = array_merge(self::$standarduserfields, $otherfields);
+        return $fields;
+    }
+
+    /**
+     * Get the user profile fields.
+     *
+     * @return string[] Numerically indexed array of user profile fields.
+     */
+    public static function get_profile_fields() {
+        global $DB;
+        $fields = array();
+        if ($proffields = $DB->get_records('user_info_field')) {
+            foreach ($proffields as $key => $proffield) {
+                $profilefieldname = 'profile_field_'.$proffield->shortname;
+                $ret[] = $profilefieldname;
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
+     * Get a list of all valid roles that can be requested.
+     *
+     * @return string[] Numerically indexed array of all valid roles.
+     */
+    public static function get_all_valid_roles() {
+        $allroles = get_all_roles();
+        $roles = array();
+        foreach ($allroles as $key => $role) {
+            // Ignoring system roles.
+            $isguest = ($role->shortname == 'guest');
+            $isfrontpage = ($role->shortname == 'frontpage');
+            $isadmin = ($role->shortname == 'admin');
+            if (!$isguest && !$isfrontpage && !$isadmin) {
+                $roles[] = $role->shortname;
+            }
+        }
+
+        return $roles;
     }
 }

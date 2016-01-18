@@ -55,7 +55,6 @@ class tool_downloaddata_config {
         'firstname',
         'lastname',
         'email',
-        'auth'
     );
 
     /** @var array Default worksheet names. */
