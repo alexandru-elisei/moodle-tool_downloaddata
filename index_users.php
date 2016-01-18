@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Web interface for downloading users or courses.
+ * Web interface for downloading users.
  *
  * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
@@ -50,7 +50,7 @@ $mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
 if ($formdata = $mform->get_data()) {
     // Adding all the valid fields.
     if (!empty($formdata->addallfields)) {
-        $SESSION->customdata['selectedfields'] = tool_downloaddata_processor::get_valid_course_fields();
+        $SESSION->customdata['selectedfields'] = tool_downloaddata_processor::get_valid_user_fields();
 
     // Removing all the selected fields.
     } else if (!empty($formdata->removeallfields)) {
@@ -128,18 +128,13 @@ if ($formdata = $mform->get_data()) {
             throw new moodle_exception('emptyroles', 'tool_downloaddata', $returnurl);
         }
 
+        $overrides = array();
         if ($options['useoverrides']) {
             if (!empty($formdata->overrides)) {
                 $overrides = tool_downloaddata_process_overrides($formdata->overrides);
-            } else if ($options['usedefaults']) {
-                $overrides = tool_downloaddata_config::$courseoverrides;
+            } else {
+                throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
             }
-        } else {
-            $overrides = array();
-        }
-
-        if ($options['useoverrides'] && empty($overrides)) {
-            throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
         }
 
         $processor = new tool_downloaddata_processor($options, $fields, $roles, $overrides);

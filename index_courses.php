@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Web interface for downloading users or courses.
+ * Web interface for downloading courses.
  *
  * @package    tool_downloaddata
  * @copyright  2015 Alexandru Elisei
@@ -93,18 +93,13 @@ if ($formdata = $mform->get_data()) {
             throw new moodle_exception('emptyfields', 'tool_downloaddata', $returnurl);
         }
 
+        $overrides = array();
         if ($options['useoverrides']) {
             if (!empty($formdata->overrides)) {
                 $overrides = tool_downloaddata_process_overrides($formdata->overrides);
-            } else if ($options['usedefaults']) {
-                $overrides = tool_downloaddata_config::$courseoverrides;
+            } else {
+                throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
             }
-        } else {
-            $overrides = array();
-        }
-
-        if ($options['useoverrides'] && empty($overrides)) {
-            throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
         }
 
         $processor = new tool_downloaddata_processor($options, $fields, null, $overrides);
