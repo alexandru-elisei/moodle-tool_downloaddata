@@ -71,7 +71,7 @@ Options:
     --useoverrides         Override fields with data from locallib: true or false (default)
 
 Example:
-\$php downloaddata.php --data=users --roles=all --format=xls > output.xls
+\$php downloaddata.php --data=users --fields=username,firstname,lastname --roles=all --format=xls > output.xls
 
 ";
 

@@ -25,7 +25,7 @@ Further information about how to use the web interface can be found in Moodle do
 
 For the cli script, navigate to MOODLE_ROOT_DIRECTORY/admin/tool/downloaddata/cli and do the following:
 
-    php downloaddata.php --data=users --format=xls --roles=all > output.xls
+    php downloaddata.php --data=users --fields=username,firstname,lastname --format=xls --roles=all > output.xls
 
 You can see a list of all the available options by doing:
 
