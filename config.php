@@ -62,10 +62,4 @@ class tool_downloaddata_config {
         'users' => 'users',
         'courses' => 'courses',
     );
-
-    /** @var array Override values for course fields. Array of 'field' => 'override value' elements. */
-    public static $courseoverrides = array();
-
-    /** @var array Override values for user fields. Array of 'field' => 'override value' elements. */
-    public static $useroverrides = array();
 }
