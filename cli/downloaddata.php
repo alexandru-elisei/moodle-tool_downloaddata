@@ -41,7 +41,6 @@ list($options, $unrecognized) = cli_get_params(array(
     'roles' => 'all',
     'overrides' => '',
     'sortbycategorypath' => false,
-    'usedefaults' => true,
     'useoverrides' => false,
 ),
 array(
@@ -69,7 +68,6 @@ Options:
 -r, --roles                Specific roles for users (comma separated) or all roles
 -o, --overrides            Override fields, comma separated, in the form field=value. Ignored when useoverrides is false
 -s, --sortbycategorypath   Sort courses by category path alphabetically: true (default) or false
-    --usedefaults          Use default values from DOWNLOADDATA_DIRECTORY/config.php for fields and overrides: true (default) or false
     --useoverrides         Override fields with data from locallib: true or false (default)
 
 Example:
@@ -126,8 +124,6 @@ if (empty($options['delimiter']) || !isset($delimiters[$options['delimiter']])) 
 $overrides = array();
 $options['useoverrides'] = ($options['useoverrides'] === true ||
                             core_text::strtolower($options['useoverrides']) == 'true');
-$options['usedefaults'] = ($options['usedefaults'] === true ||
-                            core_text::strtolower($options['usedefaults']) == 'true');
 $options['sortbycategorypath'] = ($options['sortbycategorypath'] === true ||
                                   core_text::strtolower($options['sortbycategorypath']) == 'true');
 
@@ -137,37 +133,19 @@ cron_setup_user();
 // Processing fields and override fields.
 if (!empty($options['fields'])) {
     $fields = tool_downloaddata_process_fields($options['fields']);
-}
-if ($options['useoverrides']) {
-    if (!empty($options['overrides'])) {
-        $overrides = tool_downloaddata_process_overrides($options['overrides']);
-    }
-}
-if ($options['data'] == tool_downloaddata_processor::DATA_USERS) {
-    if (empty($fields) && $options['usedefaults']) {
-        $fields = tool_downloaddata_config::$userfields;
-    }
-    if ($options['useoverrides'] && empty($overrides) && $options['usedefaults']) {
-        $overrides = tool_downloaddata_config::$useroverrides;
-    }
-} else if ($options['data'] == tool_downloaddata_processor::DATA_COURSES) {
-    if (empty($fields) && $options['usedefaults']) {
-        $fields = tool_downloaddata_config::$coursefields;
-    }
-    if ($options['useoverrides'] && empty($overrides) && $options['usedefaults']) {
-        $overrides = tool_downloaddata_config::$courseoverrides;
-    }
-}
-
-if (empty($fields)) {
+} else {
     echo "\n" . get_string('emptyfields', 'tool_downloaddata') . "!\n";
     echo $help;
     die();
 }
-if ($options['useoverrides'] && empty($overrides)) {
-    echo "\n" . get_string('emptyoverrides', 'tool_downloaddata') . "!\n";
-    echo $help;
-    die();
+if ($options['useoverrides']) {
+    if (!empty($options['overrides'])) {
+        $overrides = tool_downloaddata_process_overrides($options['overrides']);
+    } else {
+        echo "\n" . get_string('emptyoverrides', 'tool_downloaddata') . "!\n";
+        echo $help;
+        die();
+    }
 }
 
 $processor = new tool_downloaddata_processor($options, $fields, $overrides);
