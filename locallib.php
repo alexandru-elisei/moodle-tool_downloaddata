@@ -64,3 +64,16 @@ function tool_downloaddata_process_fields($rawfields) {
 
     return $processedfields;
 }
+
+function tool_downloaddata_process_roles($rawroles) {
+    if (empty($rawroles)) {
+        throw new coding_exception(get_string('emptyroles', 'tool_downloaddata'));
+    }
+
+    $processedroles = explode(',', $rawroles);
+    foreach ($processedroles as $key => $roles) {
+        $processedroles[$key] = trim($roles);
+    }
+
+    return $processedroles;
+}

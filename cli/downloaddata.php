@@ -96,6 +96,20 @@ if (!isset($options['data']) || !isset($dataoptions[$options['data']])) {
 }
 $options['data'] = $dataoptions[$options['data']];
 
+$roles = array();
+if ($options['data'] == tool_downloaddata_processor::DATA_USERS) {
+    if (empty($options['roles'])) {
+        echo "\n" . get_string('emptyroles', 'tool_downloaddata') . "!\n";
+        echo $help;
+        die();
+    } else if ($options['roles'] == 'all') {
+        $roles = tool_downloaddata_processor::get_all_valid_roles();
+    } else {
+        $roles = tool_downloaddata_process_roles($options['roles']);
+    }
+}
+
+
 $formats = array(
     'csv' => tool_downloaddata_processor::FORMAT_CSV,
     'xls' => tool_downloaddata_processor::FORMAT_XLS
@@ -148,6 +162,6 @@ if ($options['useoverrides']) {
     }
 }
 
-$processor = new tool_downloaddata_processor($options, $fields, $overrides);
+$processor = new tool_downloaddata_processor($options, $fields, $roles, $overrides);
 $processor->prepare();
 $processor->download();

@@ -33,6 +33,7 @@ $string['downloadcourses'] = 'Download courses';
 $string['downloadusersbyrole'] = 'Download users by role';
 $string['emptyfields'] = 'No fields specified';
 $string['emptyroles'] = 'No roles specified';
+$string['emptyrolescache'] = 'No roles cache';
 $string['emptyoverrides'] = 'No overrides specified';
 $string['encoding'] = 'Encoding';
 $string['fields'] = 'Fields';

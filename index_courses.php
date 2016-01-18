@@ -82,7 +82,6 @@ if ($formdata = $mform->get_data()) {
         $options['format'] = $formdata->format;
         $options['data'] = tool_downloaddata_processor::DATA_COURSES;
         $options['encoding'] = $formdata->encoding;
-        $options['roles'] = array();
         $options['usedefaults'] = false;
         $options['useoverrides'] = ($formdata->useoverrides == 'true');
         $options['sortbycategorypath'] = ($formdata->sortbycategorypath == 'true');
@@ -108,7 +107,7 @@ if ($formdata = $mform->get_data()) {
             throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
         }
 
-        $processor = new tool_downloaddata_processor($options, $fields, $overrides);
+        $processor = new tool_downloaddata_processor($options, $fields, null, $overrides);
         try {
             $processor->prepare();
         } catch (Exception $e) {

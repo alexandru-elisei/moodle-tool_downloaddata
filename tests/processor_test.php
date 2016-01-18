@@ -39,13 +39,21 @@ require_once($CFG->libdir . '/coursecatlib.php');
  */
 class tool_downloaddata_processor_testcase extends advanced_testcase {
 
+    /** @var string[] All valid user roles. */
+    protected static $allroles = array();
+
+    /** @var string[] Requested course fields. */
+    protected static $coursefields = array();
+
+    /** @var string[] Requested user fields. */
+    protected static $userfields = array();
+
     /** @var array Options for downloading users in csv format. */
     protected static $optionsuserscsv = array(
         'data' => tool_downloaddata_processor::DATA_USERS,
         'format' => tool_downloaddata_processor::FORMAT_CSV,
         'delimiter' => 'comma',
         'encoding' => 'UTF-8',
-        'roles' => 'all',
         'useoverrides' => false,
         'sortbycategorypath' => false,
     );
@@ -56,7 +64,6 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         'format' => tool_downloaddata_processor::FORMAT_XLS,
         'delimiter' => 'comma',
         'encoding' => 'UTF-8',
-        'roles' => 'all',
         'useoverrides' => false,
         'sortbycategorypath' => true,
     );
@@ -67,7 +74,6 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         'format' => tool_downloaddata_processor::FORMAT_CSV,
         'delimiter' => 'comma',
         'encoding' => 'UTF-8',
-        'roles' => 'all',
         'useoverrides' => false,
         'sortbycategorypath' => true,
     );
@@ -78,10 +84,18 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         'format' => tool_downloaddata_processor::FORMAT_XLS,
         'delimiter' => 'comma',
         'encoding' => 'UTF-8',
-        'roles' => 'all',
         'useoverrides' => false,
         'sortbycategorypath' => true,
     );
+
+    /**
+     * Getting all the valid roles.
+     */
+    public static function setUpBeforeClass() {
+        self::$allroles = tool_downloaddata_processor::get_all_valid_roles();
+        self::$coursefields = tool_downloaddata_config::$coursefields;
+        self::$userfields = tool_downloaddata_config::$userfields;
+    }
 
     /**
      * Tidy up open files that may be left open.
@@ -97,7 +111,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
         $options = array();
 
-        $fields = tool_downloaddata_config::$userfields;
+        $fields = self::$coursefields;
         $this->setExpectedException('moodle_exception', get_string('invaliddata', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
@@ -108,9 +122,9 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     public function test_invalid_options_data() {
         $this->resetAfterTest(true);
 
-        $options = self::$optionsuserscsv;
+        $options = self::$optionscoursescsv;
         $options['data'] = 4;
-        $fields = tool_downloaddata_config::$userfields;
+        $fields = self::$coursefields;
         $this->setExpectedException('moodle_exception', get_string('invaliddata', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
@@ -122,9 +136,9 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $this->resetAfterTest(true);
 
         $options = array();
-        $options['data'] = tool_downloaddata_processor::DATA_USERS;
+        $options['data'] = tool_downloaddata_processor::DATA_COURSES;
         $options['format'] = 10;
-        $fields = tool_downloaddata_config::$userfields;
+        $fields = self::$coursefields;
         $this->setExpectedException('moodle_exception', get_string('invalidformat', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
@@ -135,9 +149,9 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     public function test_invalid_options_delimiter() {
         $this->resetAfterTest(true);
 
-        $options = self::$optionsuserscsv;
+        $options = self::$optionscoursescsv;
         $options['delimiter'] = 'invalid';
-        $fields = tool_downloaddata_config::$userfields;
+        $fields = self::$coursefields;
         $this->setExpectedException('moodle_exception', get_string('invaliddelimiter', 'tool_downloaddata'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
@@ -148,9 +162,9 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     public function test_invalid_options_encoding() {
         $this->resetAfterTest(true);
 
-        $options = self::$optionsuserscsv;
+        $options = self::$optionscoursescsv;
         $options['encoding'] = 'invalid';
-        $fields = tool_downloaddata_config::$userfields;
+        $fields = self::$coursefields;
         $this->setExpectedException('moodle_exception', get_string('invalidencoding', 'tool_uploadcourse'));
         $processor = new tool_downloaddata_processor($options, $fields);
     }
@@ -161,22 +175,35 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     public function test_empty_overrides() {
         $this->resetAfterTest(true);
 
-        $options = self::$optionsuserscsv;
+        $options = self::$optionscoursescsv;
         $options['useoverrides'] = true;
-        $fields = tool_downloaddata_config::$userfields;
+        $fields = self::$coursefields;
         $overrides = array();
         $this->setExpectedException('moodle_exception', get_string('emptyoverrides', 'tool_downloaddata'));
-        $processor = new tool_downloaddata_processor($options, $fields, $overrides);
+        $processor = new tool_downloaddata_processor($options, $fields, null, $overrides);
     }
 
     /**
-     * Tests the tool_downloaddata_processor constructor.
+     * Tests the tool_downloaddata_processor constructor for users.
      */
-    public function test_constructor() {
+    public function test_constructor_users() {
         $this->resetAfterTest(true);
 
         $options = self::$optionsuserscsv;
-        $fields = tool_downloaddata_config::$userfields;
+        $fields = self::$userfields;
+        $roles = self::$allroles;
+        $processor = new tool_downloaddata_processor($options, $fields, $roles);
+        $this->assertInstanceOf('tool_downloaddata_processor', $processor);
+    }
+
+    /**
+     * Tests the tool_downloaddata_processor constructor for courses.
+     */
+    public function test_constructor_courses() {
+        $this->resetAfterTest(true);
+
+        $options = self::$optionscoursescsv;
+        $fields = self::$coursefields;
         $processor = new tool_downloaddata_processor($options, $fields);
         $this->assertInstanceOf('tool_downloaddata_processor', $processor);
     }
@@ -187,8 +214,8 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     public function test_process_started() {
         $this->resetAfterTest(true);
 
-        $options = self::$optionsuserscsv;
-        $fields = tool_downloaddata_config::$userfields;
+        $options = self::$optionscoursescsv;
+        $fields = self::$coursefields;
         $processor = new tool_downloaddata_processor($options, $fields);
         $processor->prepare();
         $this->setExpectedException('coding_exception', get_string('processstarted', 'tool_downloaddata'));
@@ -196,7 +223,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     }
 
     /**
-     * Tests if requesting invalid course fields throws an exception.
+     * Tests if requesting an invalid course field throws an exception.
      */
     public function test_invalid_course_fields() {
         $this->resetAfterTest(true);
@@ -211,7 +238,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     }
 
     /**
-     * Tests if requesting invalid user fields throws an exception.
+     * Tests if requesting an invalid user field throws an exception.
      */
     public function test_invalid_user_fields() {
         $this->resetAfterTest(true);
@@ -219,7 +246,8 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options = self::$optionsuserscsv;
         $invalidfield = 'test';
         $fields = array($invalidfield);
-        $processor = new tool_downloaddata_processor($options, $fields);
+        $roles = self::$allroles;
+        $processor = new tool_downloaddata_processor($options, $fields, $roles);
         $this->setExpectedException('moodle_exception',
                                     get_string('invalidfield', 'tool_downloaddata', $invalidfield));
         $processor->prepare();
@@ -231,8 +259,8 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     public function test_file_not_prepared() {
         $this->resetAfterTest(true);
 
-        $options = self::$optionsuserscsv;
-        $fields = tool_downloaddata_config::$userfields;
+        $options = self::$optionscoursescsv;
+        $fields = self::$coursefields;
         $processor = new tool_downloaddata_processor($options, $fields);
         $this->setExpectedException('coding_exception', get_string('filenotprepared', 'tool_downloaddata'));
         $processor->get_file_object();
@@ -246,9 +274,9 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
 
         $options = self::$optionsuserscsv;
         $invalidrole = 'invalid';
-        $options['roles'] = 'invalid';
-        $fields = tool_downloaddata_config::$userfields;
-        $processor = new tool_downloaddata_processor($options, $fields);
+        $roles = array($invalidrole);
+        $fields = self::$userfields;
+        $processor = new tool_downloaddata_processor($options, $fields, $roles);
         $this->setExpectedException('moodle_exception',
                                     get_string('invalidrole', 'tool_downloaddata', $invalidrole));
         $processor->prepare();
@@ -301,7 +329,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         );
         $options = self::$optionscoursescsv;
         $options['useoverrides'] = true;
-        $processor = new tool_downloaddata_processor($options, $fields, $overrides);
+        $processor = new tool_downloaddata_processor($options, $fields, null, $overrides);
         $processor->prepare();
         $csv = $processor->get_file_object();
 
@@ -341,7 +369,7 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
         $options = self::$optionscoursescsv;
         $options['useoverrides'] = true;
         $options['sortbycategorypath'] = true;
-        $processor = new tool_downloaddata_processor($options, $fields, $overrides);
+        $processor = new tool_downloaddata_processor($options, $fields, null, $overrides);
         $processor->prepare();
         $csv = $processor->get_file_object();
 
@@ -368,8 +396,8 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
             'username'
         );
         $options = self::$optionsuserscsv;
-        $options['roles'] = 'all';
-        $processor = new tool_downloaddata_processor($options, $fields);
+        $roles = self::$allroles;
+        $processor = new tool_downloaddata_processor($options, $fields, $roles);
         $processor->prepare();
         $csv = $processor->get_file_object();
 
@@ -404,8 +432,9 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
             'username'
         );
         $options = self::$optionsuserscsv;
-        $options['roles'] = $role->shortname;
-        $processor = new tool_downloaddata_processor($options, $fields);
+        // Created a new role, cannot use self::$allroles.
+        $roles = tool_downloaddata_processor::get_all_valid_roles();
+        $processor = new tool_downloaddata_processor($options, $fields, $roles);
         $processor->prepare();
         $csv = $processor->get_file_object();
 
@@ -441,12 +470,13 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
             'username'
         );
         $options = self::$optionsuserscsv;
-        $options['roles'] = $role->shortname;
+        // Created a new role, cannot use self::$allroles.
+        $roles = tool_downloaddata_processor::get_all_valid_roles();
         $options['useoverrides'] = true;
         $overrides = array(
             'test'  => 'test'
         );
-        $processor = new tool_downloaddata_processor($options, $fields, $overrides);
+        $processor = new tool_downloaddata_processor($options, $fields, $roles, $overrides);
         $processor->prepare();
         $csv = $processor->get_file_object();
 
@@ -488,9 +518,10 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
             'username'
         );
         $options = self::$optionsuserscsv;
-        $options['roles'] = 'all';
+        // Created new roles, cannot use self::$allroles.
+        $roles = tool_downloaddata_processor::get_all_valid_roles();
         $options['sortbycategorypath'] = true;
-        $processor = new tool_downloaddata_processor($options, $fields);
+        $processor = new tool_downloaddata_processor($options, $fields, $roles);
         $processor->prepare();
         $csv = $processor->get_file_object();
 

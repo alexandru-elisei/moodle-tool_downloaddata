@@ -76,11 +76,11 @@ class tool_downloaddata_processor {
     /** @var bool Whether the process has been started or not. */
     protected $processstarted = false;
 
-    /** @var string Download only users that have these roles. */
-    protected $requestedroles = 'all';
-
     /** @var string[] Fields to download. */
     protected $fields;
+
+    /** @var string[] Download the users with these roles. */
+    protected $roles;
 
     /** @var string[] Valid course fields. */
     protected static $validcoursefields = array( 'shortname', 'fullname', 'idnumber',
@@ -102,9 +102,6 @@ class tool_downloaddata_processor {
     /** @var string[] Fields to be overridden. */
     protected $overrides;
 
-    /** @var string[] Resolved roles. */
-    protected $resolvedroles = array();
-
     /** @var bool Whether fields should be overridden or not. */
     protected $useoverrides = false;
 
@@ -112,7 +109,7 @@ class tool_downloaddata_processor {
     protected $sortbycategorypath = false;
 
     /** @var string[] Cache for roles. */
-    protected $rolescache = null;
+    protected $rolescache = array();
 
     /** @var csv_export_writer | MoodleExcelWorkbook File object with the requested data. */
     protected $fileobject = null;
@@ -123,14 +120,22 @@ class tool_downloaddata_processor {
      * @throws moodle_exception.
      * @param string[] $options Download options.
      * @param string[] $fields The fields that will be downloaded.
+     * @param string[] $roles The requested user roles.
      * @param string[] $overrides Fields to be overridden.
      */
-    public function __construct($options, $fields, $overrides = null) {
+    public function __construct($options, $fields, $roles = null, $overrides = null) {
         if (!isset($options['data']) ||
                 !in_array($options['data'], array(self::DATA_COURSES, self::DATA_USERS))) {
             throw new moodle_exception('invaliddata', 'tool_downloaddata');
         }
         $this->coursesorusers = (int)$options['data'];
+
+        if ($this->coursesorusers === self::DATA_USERS) {
+            if (empty($roles)) {
+                throw new moodle_exception('emptyroles', 'tool_downloaddata');
+            }
+        }
+        $this->roles = $roles;
 
         $this->fields = $fields;
 
@@ -155,10 +160,6 @@ class tool_downloaddata_processor {
                 throw new moodle_exception('invalidencoding', 'tool_uploadcourse');
             }
             $this->encoding = $options['encoding'];
-        }
-
-        if (isset($options['roles'])) {
-            $this->requestedroles = $options['roles'];
         }
 
         if (isset($options['useoverrides']) && $options['useoverrides'] == true) {
@@ -189,6 +190,7 @@ class tool_downloaddata_processor {
         $this->processstarted = true;
 
         if ($this->coursesorusers === self::DATA_COURSES) {
+            // Validating the fields.
             $validationresult = $this->validate_course_fields();
             if ($validationresult !== true) {
                 throw new moodle_exception('invalidfield', 'tool_downloaddata', '', $validationresult);
@@ -201,12 +203,19 @@ class tool_downloaddata_processor {
             }
 
         } else if ($this->coursesorusers === self::DATA_USERS) {
+            // Validating the fields.
             $validationresult = $this->validate_user_fields();
             if ($validationresult !== true) {
                 throw new moodle_exception('invalidfield', 'tool_downloaddata', '', $validationresult);
             }
 
-            $this->resolvedroles = $this->resolve_roles();
+            // Validating the roles.
+            $this->build_roles_cache();
+            $validationresult = $this->validate_roles();
+            if ($validationresult !== true) {
+                throw new moodle_exception('invalidrole', 'tool_downloaddata', '', $validationresult);
+            }
+
             $this->contents = $this->get_users();
             if ($this->format === self::FORMAT_CSV) {
                 $this->fileobject = $this->save_users_to_csv();
@@ -475,7 +484,7 @@ class tool_downloaddata_processor {
         // Finding the users assigned to the course with the specified roles.
         foreach ($courses as $key => $course) {
             $coursecontext = context_course::instance($course->id);
-            foreach ($this->resolvedroles as $key => $role) {
+            foreach ($this->roles as $key => $role) {
                 $usersassigned = get_role_users($this->rolescache[$role], $coursecontext, false, $userfields, $userfields);
                 foreach ($usersassigned as $username => $user) {
                     if (!isset($users[$username])) {
@@ -497,36 +506,6 @@ class tool_downloaddata_processor {
         }
 
         return $users;
-    }
-
-    /**
-     * Validate and process specified user roles.
-     *
-     * @throws moodle_exception.
-     * @return string[] Numerically indexed array of roles.
-     */
-    protected function resolve_roles() {
-        $this->rolescache = array();
-        $allroles = get_all_roles();
-
-        // Building the roles cache.
-        foreach ($allroles as $key => $role) {
-            $this->rolescache[$role->shortname] = $role->id;
-        }
-
-        // Returning all roles.
-        if ($this->requestedroles == 'all') {
-            $ret = self::get_all_valid_roles();
-        } else {
-            $ret = explode(',', $this->requestedroles);
-            // Checking for invalid roles.
-            foreach ($ret as $key => $role) {
-                if (!isset($this->rolescache[$role])) {
-                    throw new moodle_exception('invalidrole', 'tool_downloaddata', '', $role);
-                }
-            }
-        }
-        return $ret;
     }
 
     /**
@@ -642,6 +621,41 @@ class tool_downloaddata_processor {
         }
 
         return true;
+    }
+
+    /**
+     * Build the roles cache. The roles cache is an array of role shortname => role id pairs.
+     */
+    protected function build_roles_cache() {
+        $this->rolescache = array();
+        $allroles = get_all_roles();
+
+        // Building the roles cache.
+        foreach ($allroles as $key => $role) {
+            $this->rolescache[$role->shortname] = $role->id;
+        }
+    }
+
+    /**
+     * Validate the specified user roles.
+     *
+     * @throws coding_exception
+     * @return bool|string True if validation passes, the invalid role otherwise
+     */
+    protected function validate_roles() {
+        if (empty($this->rolescache)) {
+            throw new coding_exception(get_string('emptyrolescache', 'tool_downloaddata'));
+        }
+
+        // Checking for invalid roles.
+        $ret = true;
+        foreach ($this->roles as $key => $role) {
+            if (!isset($this->rolescache[$role])) {
+                $ret = $role;
+            }
+        }
+
+        return $ret;
     }
 
     /**

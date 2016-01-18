@@ -123,7 +123,7 @@ if ($formdata = $mform->get_data()) {
         }
 
         if (!empty($SESSION->customdata['selectedroles'])) {
-            $options['roles'] = implode(',', $SESSION->customdata['selectedroles']);
+            $roles = $SESSION->customdata['selectedroles'];
         } else {
             throw new moodle_exception('emptyroles', 'tool_downloaddata', $returnurl);
         }
@@ -142,7 +142,7 @@ if ($formdata = $mform->get_data()) {
             throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
         }
 
-        $processor = new tool_downloaddata_processor($options, $fields, $overrides);
+        $processor = new tool_downloaddata_processor($options, $fields, $roles, $overrides);
         try {
             $processor->prepare();
         } catch (Exception $e) {
