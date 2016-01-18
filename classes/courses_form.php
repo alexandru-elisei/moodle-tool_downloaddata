@@ -54,30 +54,30 @@ class tool_downloaddata_courses_form extends moodleform {
             tool_downloaddata_processor::FORMAT_XLS => get_string('formatxls', 'tool_downloaddata')
         );
         $mform->addElement('select', 'format',
-            get_string('format', 'tool_downloaddata'), $formatchoices);
-        $mform->setDefault('format', tool_downloaddata_processor::FORMAT_CSV);
+                           get_string('format', 'tool_downloaddata'), $formatchoices);
+        $mform->setDefault('format', $this->_customdata['format']);
 
         $encodings = core_text::get_encodings();
         $mform->addElement('select', 'encoding', get_string('encoding', 'tool_downloaddata'), $encodings);
-        $mform->setDefault('encoding', 'UTF-8');
+        $mform->setDefault('encoding', $this->_customdata['encoding']);
         $mform->disabledIf('encoding', 'format', 'noteq', tool_downloaddata_processor::FORMAT_CSV);
 
         $delimiters = csv_import_reader::get_delimiter_list();
         $mform->addElement('select', 'delimiter_name',
                            get_string('csvdelimiter', 'tool_downloaddata'), $delimiters);
-        $mform->setDefault('delimiter_name', 'comma');
+        $mform->setDefault('delimiter_name', $this->_customdata['delimiter_name']);
         $mform->disabledIf('delimiter_name', 'format', 'noteq', tool_downloaddata_processor::FORMAT_CSV);
 
         $useoverrides = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'useoverrides',
                            get_string('useoverrides', 'tool_downloaddata'), $useoverrides);
+        $mform->setDefault('useoverrides', $this->_customdata['useoverrides']);
         $mform->addHelpButton('useoverrides', 'useoverrides', 'tool_downloaddata');
-        $mform->setDefault('useoverrides', 'false');
 
         $sortbycategorypath = array('true' => 'Yes', 'false' => 'No');
         $mform->addElement('select', 'sortbycategorypath',
                            get_string('sortbycategorypath', 'tool_downloaddata'), $sortbycategorypath);
-        $mform->setDefault('sortbycategorypath', 'true');
+        $mform->setDefault('sortbycategorypath', $this->_customdata['sortbycategorypath']);
         $mform->addHelpButton('sortbycategorypath', 'sortbycategorypath', 'tool_downloaddata');
 
         $mform->addElement('header', 'fieldshdr', get_string('fields', 'tool_downloaddata'));
@@ -114,5 +114,22 @@ class tool_downloaddata_courses_form extends moodleform {
 
         $template = '<label class="qflabel" style="vertical-align:top">{label}</label> {element}';
         $mform->defaultRenderer()->setGroupElementTemplate($template, 'fieldsgroup');
+    }
+
+    /**
+     * Returns a list of default values for the form elements.
+     *
+     * @return string[] array of form elements and their default values.
+     */
+    public static function get_default_form_values() {
+        $ret = array();
+        $ret['selectedfields'] = tool_downloaddata_config::$coursefields;
+        $ret['format'] = tool_downloaddata_processor::FORMAT_CSV;
+        $ret['encoding'] = 'UTF-8';
+        $ret['delimiter_name'] = 'comma';
+        $ret['useoverrides'] = 'false';
+        $ret['sortbycategorypath'] = 'true';
+
+        return $ret;
     }
 }

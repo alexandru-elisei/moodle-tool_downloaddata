@@ -38,11 +38,12 @@ admin_externalpage_setup('tooldownloaddata_courses');
 
 $returnurl = new moodle_url('/admin/tool/downloaddata/index_courses.php');
 
-if (!isset($SESSION->customdata)) {
-    $SESSION->customdata = array();
-    // Adding the default course fields to the selected fields.
-    $SESSION->customdata['selectedfields'] = tool_downloaddata_config::$coursefields;
-
+// Checking for the 'sortbycategorypath' field because there might be session
+// data carried over from the index_users.php page, which doesn't have the
+// 'sortbycategorypath' option.
+if (!isset($SESSION->customdata) || !isset($SESSION->customdata['sortbycategorypath'])) {
+    // Adding the form defaults.
+    $SESSION->customdata = tool_downloaddata_courses_form::get_default_form_values();
 }
 
 $mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
@@ -113,10 +114,16 @@ if ($formdata = $mform->get_data()) {
     }
 
     unset($_POST);
+    // Saving current data.
+    $SESSION->customdata['format'] = $formdata->format;
+    $SESSION->customdata['encoding'] = $formdata->encoding;
+    $SESSION->customdata['delimiter_name'] = $formdata->delimiter_name;
+    $SESSION->customdata['useoverrides'] = $formdata->useoverrides;
+    $SESSION->customdata['sortbycategorypath'] = $formdata->sortbycategorypath;
     $mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
 } else {
-    // Adding the default course fields to the selected fields.
-    $SESSION->customdata['selectedfields'] = tool_downloaddata_config::$coursefields;
+    // Resetting the session data in case of a page refresh.
+    $SESSION->customdata = tool_downloaddata_courses_form::get_default_form_values();
     $mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
 }
 

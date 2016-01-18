@@ -38,11 +38,12 @@ admin_externalpage_setup('tooldownloaddata_users');
 
 $returnurl = new moodle_url('/admin/tool/downloaddata/index_users.php');
 
-if (!isset($SESSION->customdata)) {
-    $SESSION->customdata = array();
-    $SESSION->customdata['selectedroles'] = array();
-    // Adding the default user fields to the selected fields.
-    $SESSION->customdata['selectedfields'] = tool_downloaddata_config::$userfields;
+// Checking for the 'selectedroles' field because there might be session
+// data carried over from the index_courses.php page, which doesn't have the
+// 'selectedroles' field.
+if (!isset($SESSION->customdata) || !isset($SESSION->customdata['selectedroles'])) {
+    // Adding the form defaults.
+    $SESSION->customdata = tool_downloaddata_users_form::get_default_form_values();
 }
 
 $mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
@@ -148,12 +149,14 @@ if ($formdata = $mform->get_data()) {
     }
 
     unset($_POST);
+    $SESSION->customdata['format'] = $formdata->format;
+    $SESSION->customdata['encoding'] = $formdata->encoding;
+    $SESSION->customdata['delimiter_name'] = $formdata->delimiter_name;
+    $SESSION->customdata['useoverrides'] = $formdata->useoverrides;
     $mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
 } else {
-    // Adding the default user fields to the selected fields.
-    $SESSION->customdata['selectedfields'] = tool_downloaddata_config::$userfields;
     // Removing session data on a page refresh.
-    $SESSION->customdata['selectedroles'] = array();
+    $SESSION->customdata = tool_downloaddata_users_form::get_default_form_values();
     $mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
 }
 
