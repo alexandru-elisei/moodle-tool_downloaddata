@@ -47,6 +47,7 @@ $string['invaliddelimiter'] = 'Invalid CSV delimiter';
 $string['invalidfield'] = 'Invalid field "{$a}"';
 $string['invalidencoding'] = 'Invalid encoding';
 $string['invalidformat'] = 'Invalid format';
+$string['invalidoverrides'] = 'Invalid overrides "{$a}"';
 $string['invalidrole'] = 'Invalid role "{$a}"';
 $string['noselectedfields'] = 'No fields selected';
 $string['noselectedroles'] = 'No roles selected';

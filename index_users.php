@@ -131,10 +131,11 @@ if ($formdata = $mform->get_data()) {
 
         $overrides = array();
         if ($options['useoverrides']) {
-            if (!empty($formdata->overrides)) {
+            try {
                 $overrides = tool_downloaddata_process_overrides($formdata->overrides);
-            } else {
-                throw new moodle_exception('emptyoverrides', 'tool_downloaddata', $returnurl);
+            } catch (Exception $e) {
+                $e->link = $returnurl;
+                throw $e;
             }
         }
 

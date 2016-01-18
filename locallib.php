@@ -27,18 +27,21 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Process override fields given as a comma-separated list of field=override pairs.
  *
- * @throws coding_exception.
+ * @throws moodle_exception.
  * @param string $rawoverrides Comma-separated list of 'field=override' pairs.
  * @return string[] Array of override fields and their values.
  */
 function tool_downloaddata_process_overrides($rawoverrides) {
     if (empty($rawoverrides)) {
-        throw new coding_exception(get_string('emptyoverrides', 'tool_downloaddata'));
+        throw new moodle_exception('emptyoverrides', 'tool_downloaddata');
     }
     $processedoverrides = array();
     $o = explode(',', $rawoverrides);
     foreach ($o as $value) {
         $override = explode('=', $value);
+        if (empty($override[0]) || empty($override[1])) {
+            throw new moodle_exception('invalidoverrides', 'tool_downloaddata', '', $rawoverrides);
+        }
         $processedoverrides[trim($override[0])] = trim($override[1]);
     }
 
