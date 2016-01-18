@@ -352,7 +352,13 @@ class tool_downloaddata_processor {
         foreach ($this->contents as $key => $course) {
             $row = array();
             foreach ($fields as $key => $field) {
-                $row[] = $course->$field;
+                if ($field == 'category_idnumber') {
+                    $category = $DB->get_record('course_categories', array('id' => $course->category));
+                    $categoryidnumber = $category->idnumber;
+                    $row[] = $categoryidnumber;
+                } else {
+                    $row[] = $course->$field;
+                }
             }
             $csv->add_data($row);
         }
