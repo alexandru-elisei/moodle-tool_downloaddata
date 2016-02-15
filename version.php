@@ -18,7 +18,7 @@
  * Plugin version info.
  *
  * @package    tool_downloaddata
- * @copyright  2015 Alexndru Elisei
+ * @copyright  2015 Alexandru Elisei
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
