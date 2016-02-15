@@ -448,6 +448,121 @@ class tool_downloaddata_processor_testcase extends advanced_testcase {
     }
 
     /**
+     * Tests downloading users with an empty profile field.
+     */
+    public function test_download_users_empty_profile_field() {
+        global $DB, $CFG;
+        $this->resetAfterTest(true);
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $roleid = $this->getDataGenerator()->create_role();
+        $roles = get_all_roles();
+        foreach ($roles as $r) {
+            if ($roleid == $r->id) {
+                $role = $r;
+                break;
+            }
+        }
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, $role->id);
+
+		// Creating user profile field.
+		require_once($CFG->dirroot . '/user/profile/definelib.php');
+		require_once($CFG->dirroot . '/user/profile/field/text/define.class.php');
+		$formfield = new profile_define_text();
+		$data = new stdClass();
+		$data->shortname = 'phpunit';
+		$data->name = 'phpunit';
+		$data->datatype = 'text';
+		$data->description = '';
+		$data->descriptionformat = 1;
+		$data->defaultdata = '';
+		$data->defaultdataformat = 1;
+		$data->categoryid = 1;
+		$formfield->define_save($data);
+
+        $fields = array(
+			'username',
+			'profile_field_phpunit'
+        );
+        $options = self::$optionsuserscsv;
+        // Created a new role, cannot use self::$allroles.
+        $roles = tool_downloaddata_processor::get_all_valid_roles();
+        $processor = new tool_downloaddata_processor($options, $fields, $roles);
+        $processor->prepare();
+        $csv = $processor->get_file_object();
+
+        $expectedoutput = array(
+            'username,profile_field_phpunit,course1,role1',
+            $user->username . ',,' . $course->shortname . ',' . $role->shortname
+        );
+        $expectedoutput = implode("\n", $expectedoutput);
+        $output = rtrim($csv->print_csv_data(true));
+        $this->assertEquals($expectedoutput, $output);
+    }
+
+    /**
+     * Tests downloading users with a profile field.
+     */
+    public function test_download_users_with_profile_field() {
+        global $DB, $CFG;
+        $this->resetAfterTest(true);
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $roleid = $this->getDataGenerator()->create_role();
+        $roles = get_all_roles();
+        foreach ($roles as $r) {
+            if ($roleid == $r->id) {
+                $role = $r;
+                break;
+            }
+        }
+        $this->getDataGenerator()->enrol_user($user->id, $course->id, $role->id);
+
+		// Creating user profile field.
+		require_once($CFG->dirroot . '/user/profile/definelib.php');
+		require_once($CFG->dirroot . '/user/profile/lib.php');
+		require_once($CFG->dirroot . '/user/profile/field/text/define.class.php');
+		$profilefieldname = 'phpunit';
+		$formfield = new profile_define_text();
+		$data = new stdClass();
+		$data->shortname = $profilefieldname;
+		$data->name = $profilefieldname;
+		$data->datatype = 'text';
+		$data->description = '';
+		$data->descriptionformat = 1;
+		$data->defaultdata = '';
+		$data->defaultdataformat = 1;
+		$data->categoryid = 1;
+		$formfield->define_save($data);
+
+		// Saving profile field data for the user.
+		$profilefieldvalue = 'phpunit';
+		$user->profile_field_phpunit = $profilefieldvalue;
+		profile_save_data($user);
+
+        $fields = array(
+			'username',
+			'profile_field_' . $profilefieldname
+        );
+        $options = self::$optionsuserscsv;
+        // Created a new role, cannot use self::$allroles.
+        $roles = tool_downloaddata_processor::get_all_valid_roles();
+        $processor = new tool_downloaddata_processor($options, $fields, $roles);
+        $processor->prepare();
+        $csv = $processor->get_file_object();
+
+        $expectedoutput = array(
+            'username,profile_field_' . $profilefieldname . ',course1,role1',
+            $user->username . ',' . $profilefieldvalue . ',' . $course->shortname . ',' . $role->shortname
+        );
+        $expectedoutput = implode("\n", $expectedoutput);
+        $output = rtrim($csv->print_csv_data(true));
+        $this->assertEquals($expectedoutput, $output);
+    }
+
+    /**
      * Tests downloading users and using overrides.
      */
     public function test_download_users_useoverrides() {
