@@ -154,6 +154,7 @@ if ($formdata = $mform->get_data()) {
     $SESSION->customdata['encoding'] = $formdata->encoding;
     $SESSION->customdata['delimiter_name'] = $formdata->delimiter_name;
     $SESSION->customdata['useoverrides'] = $formdata->useoverrides;
+    $SESSION->customdata['overrides'] = $formdata->overrides;
     $mform = new tool_downloaddata_users_form(null, $SESSION->customdata);
 } else {
     // Removing session data on a page refresh.
@@ -162,6 +163,5 @@ if ($formdata = $mform->get_data()) {
 }
 
 echo $OUTPUT->header();
-$errors = null;
 $mform->display();
 echo $OUTPUT->footer();

@@ -121,14 +121,14 @@ if ($formdata = $mform->get_data()) {
     $SESSION->customdata['delimiter_name'] = $formdata->delimiter_name;
     $SESSION->customdata['useoverrides'] = $formdata->useoverrides;
     $SESSION->customdata['sortbycategorypath'] = $formdata->sortbycategorypath;
+    $SESSION->customdata['overrides'] = $formdata->overrides;
     $mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
 } else {
-    // Resetting the session data in case of a page refresh.
+    // Resetting the session data on a page refresh.
     $SESSION->customdata = tool_downloaddata_courses_form::get_default_form_values();
     $mform = new tool_downloaddata_courses_form(null, $SESSION->customdata);
 }
 
 echo $OUTPUT->header();
-$errors = null;
 $mform->display();
 echo $OUTPUT->footer();

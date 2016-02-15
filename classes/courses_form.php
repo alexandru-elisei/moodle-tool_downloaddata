@@ -41,6 +41,7 @@ class tool_downloaddata_courses_form extends moodleform {
     public function definition () {
         $mform = $this->_form;
         $selectedfields = $this->_customdata['selectedfields'];
+		$overrides = $this->_customdata['overrides'];
         $fields = tool_downloaddata_processor::get_valid_course_fields();
 
         if (empty($selectedfields)) {
@@ -103,12 +104,16 @@ class tool_downloaddata_courses_form extends moodleform {
         $group = $mform->addElement('group', 'buttonsgroup', '', $objs, array(' ', '<br/>'), false);
 
         $mform->addElement('header', 'overrideshdr', get_string('overrides', 'tool_downloaddata'));
-        $mform->setExpanded('overrideshdr', false);
-
         $mform->addElement('textarea', 'overrides', get_string('overrides', 'tool_downloaddata'),
                            'wrap="virtual" rows="3" cols="45"');
         $mform->setType('overrides', PARAM_RAW);
+		$mform->setDefault('overrides', $overrides);
         $mform->addHelpButton('overrides', 'overrides', 'tool_downloaddata');
+		if (empty($overrides)) {
+			$mform->setExpanded('overrideshdr', false);
+		} else {
+			$mform->setExpanded('overrideshdr', true);
+		}
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
 
@@ -129,6 +134,7 @@ class tool_downloaddata_courses_form extends moodleform {
         $ret['delimiter_name'] = 'comma';
         $ret['useoverrides'] = 'false';
         $ret['sortbycategorypath'] = 'true';
+		$ret['overrides'] = null;
 
         return $ret;
     }

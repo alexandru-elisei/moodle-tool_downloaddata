@@ -43,6 +43,7 @@ class tool_downloaddata_users_form extends moodleform {
         $mform = $this->_form;
         $selectedfields = $this->_customdata['selectedfields'];
         $selectedroles = $this->_customdata['selectedroles'];
+		$overrides = $this->_customdata['overrides'];
         $fields = array_merge(tool_downloaddata_processor::get_valid_user_fields(),
                               tool_downloaddata_processor::get_profile_fields());
         $roles = tool_downloaddata_processor::get_all_valid_roles();
@@ -122,15 +123,20 @@ class tool_downloaddata_users_form extends moodleform {
         $group = $mform->addElement('group', 'fieldsbuttonsgroup', '', $objs, array(' ', '<br/>'), false);
 
         $mform->addElement('header', 'overrideshdr', get_string('overrides', 'tool_downloaddata'));
-        $mform->setExpanded('overrideshdr', false);
 
         $mform->addElement('textarea', 'overrides', get_string('overrides', 'tool_downloaddata'),
                            'wrap="virtual" rows="3" cols="45"');
         $mform->setType('overrides', PARAM_RAW);
+		$mform->setDefault('overrides', $overrides);
         $mform->addHelpButton('overrides', 'overrides', 'tool_downloaddata');
+		if (empty($overrides)) {
+			$mform->setExpanded('overrideshdr', false);
+		} else {
+			$mform->setExpanded('overrideshdr', true);
+		}
 
         $this->add_action_buttons(false, get_string('download', 'tool_downloaddata'));
-        
+
         $template = '<label class="qflabel" style="vertical-align:top">{label}</label> {element}';
         $mform->defaultRenderer()->setGroupElementTemplate($template, 'fieldsgroup');
         $mform->defaultRenderer()->setGroupElementTemplate($template, 'rolesgroup');
@@ -149,6 +155,7 @@ class tool_downloaddata_users_form extends moodleform {
         $ret['encoding'] = 'UTF-8';
         $ret['delimiter_name'] = 'comma';
         $ret['useoverrides'] = 'false';
+        $ret['overrides'] = null;
 
         return $ret;
     }
