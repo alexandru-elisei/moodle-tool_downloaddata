@@ -28,6 +28,7 @@ require_once($CFG->libdir . '/moodlelib.php');
 require_once($CFG->libdir . '/excellib.class.php');
 require_once($CFG->libdir . '/coursecatlib.php');
 require_once($CFG->libdir . '/csvlib.class.php');
+require_once($CFG->dirroot . '/user/profile/lib.php');
 require_once(__DIR__ . '/../config.php');
 
 /**
@@ -409,7 +410,7 @@ class tool_downloaddata_processor {
             if (!empty($user->roles)) {
                 $row = array();
                 foreach ($userfields as $key => $field) {
-                    $row[] = $user->$field;
+					$row[] = $user->$field;
                 }
                 foreach ($user->roles as $key => $rolesarray) {
                     foreach ($rolesarray as $role => $course) {
@@ -479,9 +480,15 @@ class tool_downloaddata_processor {
 
         // Constructing the requested user fields.
         $userfields = array();
+		$getprofilefields = false;
         foreach ($this->fields as $field) {
-            $userfields[] = 'u.' . $field;
+			if (preg_match('/^profile_field_/', $field)) {
+				$getprofilefields = true;
+			} else {
+				$userfields[] = 'u.' . $field;
+			}
         }
+		$userfields[] = 'u.id';
         $userfields = implode(',', $userfields);
 
         $courses = $this->get_courses();
@@ -501,6 +508,13 @@ class tool_downloaddata_processor {
                 }
             }
         }
+
+		// Getting all the profile fields.
+		if ($getprofilefields) {
+			foreach ($users as $username => $user) {
+				profile_load_data($user);
+			}
+		}
 
         // Overridding fields.
         if ($this->useoverrides) {
@@ -737,7 +751,7 @@ class tool_downloaddata_processor {
         if ($proffields = $DB->get_records('user_info_field')) {
             foreach ($proffields as $key => $proffield) {
                 $profilefieldname = 'profile_field_'.$proffield->shortname;
-                $ret[] = $profilefieldname;
+                $fields[] = $profilefieldname;
             }
         }
 
