@@ -1,3 +1,12 @@
+Version 3.0.7
+-------------
+
+New feature: you can select from the user profile fields when downloading users.
+
+* Add support for user profile fields.
+
+
+
 Version 3.0.6
 -------------
 
