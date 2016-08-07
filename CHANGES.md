@@ -1,3 +1,10 @@
+Version 3.1.1
+-------------
+
+Maintenance relase, advertise support for Moodle 3.1.
+
+
+
 Version 3.0.7
 -------------
 
